@@ -171,6 +171,11 @@ tr:hover td{background:rgba(92,107,192,.05)}
 <!-- ═══ TAB: ГЛАВНАЯ ═══════════════════════════════════════════════════════════ -->
 <div id="tab-main" class="tab-content active">
   <div class="gap">
+    <div class="ctrl" style="margin-bottom:0">
+      <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
+      <select id="mainPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+      <select id="mainPeriodVal"></select>
+    </div>
     <div class="kpi-grid" id="kpi-main"></div>
     <div class="alerts" id="alerts-main"></div>
     <div class="card">
@@ -201,8 +206,9 @@ tr:hover td{background:rgba(92,107,192,.05)}
       <div class="card-hdr">
         <div class="card-title">&#128203; &#1042;&#1089;&#1077; &#1087;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1077;&#1083;&#1080; &#1079;&#1072; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;</div>
         <div class="ctrl" style="margin:0">
-          <span class="lbl">&#1052;&#1077;&#1089;&#1103;&#1094;:</span>
-          <select id="generalMonth"></select>
+          <span class="lbl">&#1058;&#1080;&#1087;:</span>
+          <select id="generalPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+          <select id="generalPeriodVal"></select>
         </div>
       </div>
       <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
@@ -219,10 +225,12 @@ tr:hover td{background:rgba(92,107,192,.05)}
     <div class="card">
       <div class="card-hdr">
         <div class="card-title">&#9878;&#65039; &#1057;&#1088;&#1072;&#1074;&#1085;&#1077;&#1085;&#1080;&#1077; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1086;&#1074;</div>
-        <div class="ctrl" style="margin:0">
-          <select id="periodA"></select>
+        <div class="ctrl" style="margin:0;flex-wrap:wrap">
+          <select id="cmpTypeA"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+          <select id="cmpValA"></select>
           <span class="sep">&#8594;</span>
-          <select id="periodB"></select>
+          <select id="cmpTypeB"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+          <select id="cmpValB"></select>
         </div>
       </div>
       <div class="tbl-wrap"><div id="compareTable"></div></div>
@@ -263,13 +271,18 @@ tr:hover td{background:rgba(92,107,192,.05)}
 <!-- ═══ TAB: КЛИЕНТЫ & ГОРОДА ══════════════════════════════════════════════════ -->
 <div id="tab-clients" class="tab-content">
   <div class="gap">
+    <div class="ctrl">
+      <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
+      <select id="clientsPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option></select>
+      <select id="clientsPeriodVal"></select>
+    </div>
     <div class="row2">
       <div class="card">
-        <div class="card-title" style="margin-bottom:12px">&#127962; &#1058;&#1086;&#1087; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1086;&#1074; <span style="font-size:11px;font-weight:400;color:var(--muted)">(YTD 2026)</span></div>
+        <div class="card-title" style="margin-bottom:12px">&#127962; &#1058;&#1086;&#1087; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1086;&#1074; <span id="clientsPeriodLabel" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
         <div class="chart-bar"><canvas id="clientsChart"></canvas></div>
       </div>
       <div class="card">
-        <div class="card-title" style="margin-bottom:12px">&#128506;&#65039; &#1058;&#1086;&#1087; &#1075;&#1086;&#1088;&#1086;&#1076;&#1086;&#1074; <span style="font-size:11px;font-weight:400;color:var(--muted)">(YTD 2026)</span></div>
+        <div class="card-title" style="margin-bottom:12px">&#128506;&#65039; &#1058;&#1086;&#1087; &#1075;&#1086;&#1088;&#1086;&#1076;&#1086;&#1074; <span id="citiesPeriodLabel" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
         <div class="chart-bar"><canvas id="citiesChart"></canvas></div>
       </div>
     </div>
@@ -288,6 +301,106 @@ const fmtRub = v => v==null?'—': Math.round(v).toLocaleString('ru-RU');
 const fmtPct = v => v==null?'—': v.toFixed(1)+'%';
 const sign   = v => v>0?'+':'';
 const css    = p => getComputedStyle(document.documentElement).getPropertyValue(p).trim();
+
+// ── Period utilities ──────────────────────────────────────────────────────────
+const MONTH_KEYS = D.monthly.map(m => m.key);
+
+function getMonthKeys(type, val) {
+  if (type === 'month') return [val];
+  if (type === 'quarter') {
+    const [q, yr] = val.split('-');
+    const qn = +q[1];
+    const ms = [(qn-1)*3+1,(qn-1)*3+2,(qn-1)*3+3]
+      .map(m => String(m).padStart(2,'0')+'-'+yr);
+    return ms.filter(k => MONTH_KEYS.includes(k));
+  }
+  if (type === 'year') return MONTH_KEYS.filter(k => k.slice(3) === val);
+  return [];
+}
+
+function getPeriodLabel(type, val) {
+  if (type === 'month') { const m = D.monthly.find(m => m.key===val); return m ? m.label : val; }
+  if (type === 'quarter') return val.replace('-',' ');
+  return val;
+}
+
+function fillPeriodSelect(selType, selVal, onChange, defaultFirst) {
+  function rebuild() {
+    const t = selType.value;
+    selVal.innerHTML = '';
+    if (t === 'month') {
+      D.monthly.slice().reverse().forEach(m => {
+        selVal.innerHTML += `<option value="${m.key}">${m.label}</option>`;
+      });
+    } else if (t === 'quarter') {
+      const seen = new Set();
+      D.monthly.slice().reverse().forEach(m => {
+        const yr=m.key.slice(3), mo=+m.key.slice(0,2), qn=Math.ceil(mo/3);
+        const qk=`Q${qn}-${yr}`;
+        if (!seen.has(qk)) { seen.add(qk); selVal.innerHTML+=`<option value="${qk}">Q${qn} ${yr}</option>`; }
+      });
+    } else {
+      const seen = new Set();
+      D.monthly.slice().reverse().forEach(m => {
+        const yr=m.key.slice(3);
+        if (!seen.has(yr)) { seen.add(yr); selVal.innerHTML+=`<option value="${yr}">${yr}</option>`; }
+      });
+    }
+    if (defaultFirst && selVal.options.length > 1 && !defaultFirst._set) {
+      defaultFirst._set = true;
+    }
+    onChange();
+  }
+  selType.onchange = rebuild;
+  selVal.onchange  = onChange;
+  rebuild();
+}
+
+function aggregatePlRows(keys) {
+  if (!keys || !keys.length) return [];
+  if (keys.length === 1) return (D.pl_rows[keys[0]] || []).map(r=>({...r}));
+  const order = [], seen = new Set();
+  keys.forEach(k => (D.pl_rows[k]||[]).forEach(r => {
+    if (!seen.has(r.b)) { seen.add(r.b); order.push({...r}); }
+  }));
+  const sum = {};
+  keys.forEach(k => (D.pl_rows[k]||[]).forEach(r => { sum[r.b]=(sum[r.b]||0)+r.value; }));
+  const pctRatio = {'19':['18','1'],'5':['4','1'],'9':['8','1'],'13':['12','1'],'22':['21','1']};
+  return order.map(r => {
+    let val = sum[r.b]||0;
+    if (pctRatio[r.b]) {
+      const [n,d] = pctRatio[r.b];
+      val = sum[d] ? (sum[n]||0)/sum[d] : 0;
+    } else if (Math.abs(r.value)<=1.5 && r.value!==0) {
+      val = val / keys.length;
+    }
+    return {...r, value: val};
+  }).filter(r => r.value !== 0);
+}
+
+function aggMonthly(keys) {
+  const ms = D.monthly.filter(m => keys.includes(m.key));
+  if (!ms.length) return null;
+  const rev   = ms.reduce((s,m)=>s+m.revenue,0);
+  const costs = ms.reduce((s,m)=>s+m.project_costs,0);
+  const zp    = ms.reduce((s,m)=>s+m.zp_massive,0);
+  const fin   = ms.reduce((s,m)=>s+m.fin_res_biz,0);
+  return { revenue:rev, project_costs:costs, zp_massive:zp, fin_res_biz:fin,
+           margin_pct: rev>0?fin/rev*100:0, zp_rev_pct: rev>0?zp/rev*100:0 };
+}
+
+function prevPeriod(type, val) {
+  if (type === 'month') {
+    const idx = MONTH_KEYS.indexOf(val);
+    return idx > 0 ? MONTH_KEYS[idx-1] : null;
+  }
+  if (type === 'quarter') {
+    const [q,yr] = val.split('-'); const qn=+q[1];
+    if (qn===1) return `Q4-${+yr-1}`; return `Q${qn-1}-${yr}`;
+  }
+  if (type === 'year') return String(+val-1);
+  return null;
+}
 
 function marginChip(m){
   if(m===null||m===undefined) return '<span class="chip chip-b">—</span>';
@@ -337,70 +450,87 @@ function scaleY(label){ return {ticks:{color:()=>css('--muted'),font:{size:11}},
 // TAB: ГЛАВНАЯ
 // ══════════════════════════════════════════════════════════════════════════════
 function initMain(){
-  const last = D.monthly[D.monthly.length-1];
-  const prev = D.monthly[D.monthly.length-2];
-
-  // Badge + footer
+  // Badge + footer (one-time)
   const firstLabel = D.monthly[0].label;
-  document.getElementById('period-badge').textContent = `Данные: ${firstLabel} — ${last.label}`;
+  const lastLabel  = D.monthly[D.monthly.length-1].label;
+  document.getElementById('period-badge').textContent = `Данные: ${firstLabel} — ${lastLabel}`;
   document.getElementById('footer-main').textContent =
-    `STH-group Financial Dashboard  |  Данные: ${firstLabel} — ${last.label}`;
-  document.getElementById('trends-period').textContent = `${firstLabel} → ${last.label}`;
+    `STH-group Financial Dashboard  |  Данные: ${firstLabel} — ${lastLabel}`;
+  document.getElementById('trends-period').textContent = `${firstLabel} → ${lastLabel}`;
 
-  // YTD by year
-  const ytdByYear = {};
-  D.monthly.forEach(m=>{
-    const yr = m.key.slice(3);
-    ytdByYear[yr] = (ytdByYear[yr]||0) + m.revenue;
-  });
-  const years = Object.keys(ytdByYear).sort();
-  const lastYr = years[years.length-1];
-  const prevYr = years[years.length-2];
+  function renderMain() {
+    const type = document.getElementById('mainPeriodType').value;
+    const val  = document.getElementById('mainPeriodVal').value;
+    if (!val) return;
+    const keys = getMonthKeys(type, val);
+    const cur  = aggMonthly(keys);
+    if (!cur) return;
+    const pv   = prevPeriod(type, val);
+    const prevKeys = pv ? getMonthKeys(type, pv) : null;
+    const prv  = prevKeys ? aggMonthly(prevKeys) : null;
 
-  const kpis=[
-    {label:'Выручка (посл. мес.)', val:'₽'+fmtM(last.revenue),
-     delta:sign(last.revenue-prev.revenue)+'₽'+fmtM(last.revenue-prev.revenue),
-     cls:last.revenue>=prev.revenue?'up':'down', sub:`Пред: ₽${fmtM(prev.revenue)}`, accent:'var(--accent)'},
-    {label:'Рентабельность', val:fmtPct(last.margin_pct),
-     delta:sign(last.margin_pct-prev.margin_pct)+fmtPct(last.margin_pct-prev.margin_pct),
-     cls:last.margin_pct>=prev.margin_pct?'up':'down', sub:`Пред: ${fmtPct(prev.margin_pct)}`, accent:'var(--green)'},
-    {label:'ЗП / Выручка', val:fmtPct(last.zp_rev_pct),
-     delta:sign(last.zp_rev_pct-prev.zp_rev_pct)+fmtPct(last.zp_rev_pct-prev.zp_rev_pct),
-     cls:last.zp_rev_pct<=prev.zp_rev_pct?'up':'down', sub:`ЗП масс: ₽${fmtM(last.zp_massive)}`, accent:'var(--amber)'},
-    {label:`YTD ${lastYr}`, val:'₽'+fmtM(ytdByYear[lastYr]),
-     delta:`${prevYr}: ₽${fmtM(ytdByYear[prevYr])}`,
-     cls:'neutral', sub:`Ср/мес: ₽${fmtM(Math.round(ytdByYear[lastYr]/D.monthly.filter(m=>m.key.includes(lastYr)).length))}`, accent:'var(--purple)'},
-  ];
-  document.getElementById('kpi-main').innerHTML = kpis.map(k=>`
-    <div class="kpi" style="border-left-color:${k.accent}">
-      <div class="kpi-label">${k.label}</div>
-      <div class="kpi-value">${k.val}</div>
-      <div class="kpi-delta ${k.cls}">${k.delta}</div>
-      <div class="kpi-sub">${k.sub}</div>
-    </div>`).join('');
+    const ytdByYear = {};
+    D.monthly.forEach(m => {
+      const yr = m.key.slice(3);
+      ytdByYear[yr] = (ytdByYear[yr]||0) + m.revenue;
+    });
+    const years = Object.keys(ytdByYear).sort();
+    const lastYr = years[years.length-1];
+    const prevYr = years[years.length-2];
 
-  // Alerts
-  const best = D.monthly.reduce((a,b)=>a.margin_pct>b.margin_pct?a:b);
-  const worst= D.monthly.reduce((a,b)=>a.margin_pct<b.margin_pct?a:b);
-  const zpTrend = last.zp_rev_pct - D.monthly[0].zp_rev_pct;
-  document.getElementById('alerts-main').innerHTML = `
-    <div class="alert-box alert-g">
-      <div class="alert-title">🏆 Лучший месяц по рент-ти</div>
-      <div class="alert-val">${best.label} — ${fmtPct(best.margin_pct)}</div>
-      <div class="alert-sub">Выручка: ₽${fmtM(best.revenue)}</div>
-    </div>
-    <div class="alert-box alert-r">
-      <div class="alert-title">⚠️ Худший месяц по рент-ти</div>
-      <div class="alert-val">${worst.label} — ${fmtPct(worst.margin_pct)}</div>
-      <div class="alert-sub">Выручка: ₽${fmtM(worst.revenue)}</div>
-    </div>
-    <div class="alert-box ${zpTrend<0?'alert-g':'alert-r'}">
-      <div class="alert-title">📉 ЗП/Выручка: тренд за период</div>
-      <div class="alert-val">${sign(zpTrend)}${fmtPct(zpTrend)}</div>
-      <div class="alert-sub">${D.monthly[0].label}: ${fmtPct(D.monthly[0].zp_rev_pct)} → ${last.label}: ${fmtPct(last.zp_rev_pct)}</div>
-    </div>`;
+    const kpis = [
+      {label:'Выручка', val:'₽'+fmtM(cur.revenue),
+       delta: prv ? sign(cur.revenue-prv.revenue)+'₽'+fmtM(cur.revenue-prv.revenue) : '—',
+       cls: prv?(cur.revenue>=prv.revenue?'up':'down'):'neutral',
+       sub: prv?`Пред: ₽${fmtM(prv.revenue)}`:'', accent:'var(--accent)'},
+      {label:'Рентабельность', val:fmtPct(cur.margin_pct),
+       delta: prv?sign(cur.margin_pct-prv.margin_pct)+fmtPct(cur.margin_pct-prv.margin_pct):'—',
+       cls: prv?(cur.margin_pct>=prv.margin_pct?'up':'down'):'neutral',
+       sub: prv?`Пред: ${fmtPct(prv.margin_pct)}`:'', accent:'var(--green)'},
+      {label:'ЗП / Выручка', val:fmtPct(cur.zp_rev_pct),
+       delta: prv?sign(cur.zp_rev_pct-prv.zp_rev_pct)+fmtPct(cur.zp_rev_pct-prv.zp_rev_pct):'—',
+       cls: prv?(cur.zp_rev_pct<=prv.zp_rev_pct?'up':'down'):'neutral',
+       sub:`ЗП масс: ₽${fmtM(cur.zp_massive)}`, accent:'var(--amber)'},
+      {label:`YTD ${lastYr}`, val:'₽'+fmtM(ytdByYear[lastYr]),
+       delta:`${prevYr}: ₽${fmtM(ytdByYear[prevYr])}`,
+       cls:'neutral',
+       sub:`Ср/мес: ₽${fmtM(Math.round(ytdByYear[lastYr]/D.monthly.filter(m=>m.key.includes(lastYr)).length))}`,
+       accent:'var(--purple)'},
+    ];
+    document.getElementById('kpi-main').innerHTML = kpis.map(k=>`
+      <div class="kpi" style="border-left-color:${k.accent}">
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-value">${k.val}</div>
+        <div class="kpi-delta ${k.cls}">${k.delta}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      </div>`).join('');
 
-  // Mini chart (last 6 months)
+    const best  = D.monthly.reduce((a,b)=>a.margin_pct>b.margin_pct?a:b);
+    const worst = D.monthly.reduce((a,b)=>a.margin_pct<b.margin_pct?a:b);
+    const zpTrend = D.monthly[D.monthly.length-1].zp_rev_pct - D.monthly[0].zp_rev_pct;
+    document.getElementById('alerts-main').innerHTML = `
+      <div class="alert-box alert-g">
+        <div class="alert-title">🏆 Лучший месяц по рент-ти</div>
+        <div class="alert-val">${best.label} — ${fmtPct(best.margin_pct)}</div>
+        <div class="alert-sub">Выручка: ₽${fmtM(best.revenue)}</div>
+      </div>
+      <div class="alert-box alert-r">
+        <div class="alert-title">⚠️ Худший месяц по рент-ти</div>
+        <div class="alert-val">${worst.label} — ${fmtPct(worst.margin_pct)}</div>
+        <div class="alert-sub">Выручка: ₽${fmtM(worst.revenue)}</div>
+      </div>
+      <div class="alert-box ${zpTrend<0?'alert-g':'alert-r'}">
+        <div class="alert-title">📉 ЗП/Выручка: тренд за всё время</div>
+        <div class="alert-val">${sign(zpTrend)}${fmtPct(zpTrend)}</div>
+        <div class="alert-sub">${D.monthly[0].label}: ${fmtPct(D.monthly[0].zp_rev_pct)} → ${lastLabel}: ${fmtPct(D.monthly[D.monthly.length-1].zp_rev_pct)}</div>
+      </div>`;
+  }
+
+  const selType = document.getElementById('mainPeriodType');
+  const selVal  = document.getElementById('mainPeriodVal');
+  fillPeriodSelect(selType, selVal, renderMain);
+
+  // Mini chart (last 6 months — always static)
   const mini = D.monthly.slice(-6);
   const ctx = document.getElementById('miniChart').getContext('2d');
   charts.mini = new Chart(ctx, {
@@ -521,8 +651,7 @@ const PL_DESC = {
   '22':    'Рентабельность после налогов (%)',
 };
 
-function renderGeneral(key){
-  const rows = D.pl_rows[key];
+function renderGeneral(rows){
   if(!rows || !rows.length){
     document.getElementById('generalTable').innerHTML = '<tbody><tr><td colspan="4" style="color:var(--muted);padding:20px">Нет данных для этого периода</td></tr></tbody>';
     return;
@@ -581,65 +710,92 @@ function renderGeneral(key){
 }
 
 initFns.general = function(){
-  const sel = document.getElementById('generalMonth');
-  D.monthly.slice().reverse().forEach(m=>{ sel.innerHTML+=`<option value="${m.key}">${m.label}</option>` });
-  const upd = () => renderGeneral(sel.value);
-  sel.onchange = upd;
-  renderGeneral(sel.value);
+  const selType = document.getElementById('generalPeriodType');
+  const selVal  = document.getElementById('generalPeriodVal');
+  function upd() {
+    const keys = getMonthKeys(selType.value, selVal.value);
+    renderGeneral(aggregatePlRows(keys));
+  }
+  fillPeriodSelect(selType, selVal, upd);
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TAB: СРАВНЕНИЕ
 // ══════════════════════════════════════════════════════════════════════════════
-const CMP_ROWS = [
-  {k:'revenue',       l:'Выручка',                    good:'up',  fmt:'money'},
-  {k:'project_costs', l:'Расходы (прямые)',            good:'dn',  fmt:'money'},
-  {k:'zp_massive',    l:'ЗП массового персонала',      good:'dn',  fmt:'money'},
-  {k:'zp_rev_pct',    l:'ЗП / Выручка',               good:'dn',  fmt:'pct'},
-  {k:'margin_pct',    l:'Рентабельность %',            good:'up',  fmt:'pct'},
-  {k:'fin_res_biz',   l:'Фин. рез. бизнеса',          good:'up',  fmt:'money'},
-  {k:'housing',       l:'Проживание',                  good:'dn',  fmt:'money'},
-  {k:'transport',     l:'Проезд',                      good:'dn',  fmt:'money'},
-  {k:'meals',         l:'Питание',                     good:'dn',  fmt:'money'},
-  {k:'recruit_svc',   l:'Подбор персонала',            good:'dn',  fmt:'money'},
-  {k:'bonus_recruit', l:'Бонус за подбор',             good:'dn',  fmt:'money'},
-  {k:'bank_factor',   l:'Комиссия банка (фактор)',      good:'dn',  fmt:'money'},
-  {k:'vat',           l:'НДС',                         good:'nn',  fmt:'money'},
-  {k:'income_tax',    l:'Налог на прибыль',            good:'nn',  fmt:'money'},
-  {k:'fin_res_super', l:'Фин. рез. Супервайзера',      good:'up',  fmt:'money'},
-  {k:'fin_res_rrp',   l:'Фин. рез. РРП',              good:'up',  fmt:'money'},
-  {k:'fin_res_drp',   l:'Фин. рез. ДРП',              good:'up',  fmt:'money'},
-];
+function renderCompare(keysA, keysB, labelA, labelB) {
+  const rowsA = aggregatePlRows(keysA);
+  const rowsB = aggregatePlRows(keysB);
+  if (!rowsA.length && !rowsB.length) {
+    document.getElementById('compareTable').innerHTML = '<div style="color:var(--muted);padding:20px">Нет данных</div>'; return;
+  }
+  const mapA = Object.fromEntries(rowsA.map(r=>[r.b,r]));
+  const mapB = Object.fromEntries(rowsB.map(r=>[r.b,r]));
+  const order = [], seen = new Set();
+  [...rowsA,...rowsB].forEach(r => { if(!seen.has(r.b)){seen.add(r.b);order.push(r);} });
 
-function renderCompare(iA,iB){
-  const a=D.monthly[iA], b=D.monthly[iB];
-  let html=`<table><thead><tr><th>Показатель</th><th class="td-r">${a.label}</th>
-    <th class="td-r">${b.label}</th><th class="td-r">Δ</th><th class="td-r">Δ%</th></tr></thead><tbody>`;
-  CMP_ROWS.forEach(r=>{
-    const va=a[r.k]||0, vb=b[r.k]||0, d=vb-va;
-    const dp=va!==0?d/Math.abs(va)*100:0;
-    const isGood=(r.good==='up'&&d>=0)||(r.good==='dn'&&d<=0);
-    const isBad =(r.good==='up'&&d<0) ||(r.good==='dn'&&d>0);
-    const cls=isGood?'pos':isBad?'neg':'neutral';
-    const fv=r.fmt==='pct'?fmtPct:fmtRub;
-    html+=`<tr><td class="td-name">${r.l}</td>
-      <td class="td-r">${fv(va)}</td><td class="td-r">${fv(vb)}</td>
-      <td class="td-r ${cls}">${sign(d)}${fv(d)}</td>
-      <td class="td-r ${cls}">${sign(dp)}${dp.toFixed(1)}%</td></tr>`;
+  let html = `<table><thead><tr>
+    <th class="pl-code">&#1050;&#1086;&#1076;</th>
+    <th>&#1055;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1077;&#1083;&#1100;</th>
+    <th class="td-r">${labelA}</th>
+    <th class="td-r">${labelB}</th>
+    <th class="td-r">&#916;</th>
+    <th class="td-r">&#916;%</th>
+  </tr></thead><tbody>`;
+
+  order.forEach(r => {
+    const rA = mapA[r.b], rB = mapB[r.b];
+    if (!rA && !rB) return;
+    const refVal = rA ? rA.value : rB.value;
+    const isDecPct = Math.abs(refVal) <= 1.5 && refVal !== 0;
+    const fv = isDecPct ? v => fmtPct(v*100) : fmtRub;
+    const indent = r.indent * 18 + 4;
+    const tip = PL_DESC[r.b] || ('&#1050;&#1086;&#1076; ' + r.b);
+    const rowCls = r.indent===0 ? (/^\d+$/.test(r.b)?'pl-top0-total':'pl-top0') : '';
+
+    let vAstr, vBstr, dStr = '&#8212;', dpStr = '&#8212;';
+    if (!rA) {
+      vAstr = `<span style="color:var(--muted)" title="&#1085;&#1077;&#1090; &#1074; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1077; &#1040;">&#8212;</span>`;
+      vBstr = fv(rB.value);
+    } else if (!rB) {
+      vAstr = fv(rA.value);
+      vBstr = `<span style="color:var(--muted)" title="&#1085;&#1077;&#1090; &#1074; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1077; &#1041;">&#8212;</span>`;
+    } else {
+      const va=rA.value, vb=rB.value, d=vb-va;
+      const dp = va!==0 ? d/Math.abs(va)*100 : 0;
+      const cls = d>=0?'pos':'neg';
+      vAstr = fv(va); vBstr = fv(vb);
+      dStr  = `<span class="${cls}">${sign(d)}${fv(d)}</span>`;
+      dpStr = `<span class="${cls}">${sign(dp)}${dp.toFixed(1)}%</span>`;
+    }
+
+    html += `<tr class="${rowCls}">
+      <td class="pl-code">${r.b}</td>
+      <td style="padding-left:${indent}px"><span class="pl-label" title="${tip}">${r.label}</span></td>
+      <td class="td-r">${vAstr}</td>
+      <td class="td-r">${vBstr}</td>
+      <td class="td-r">${dStr}</td>
+      <td class="td-r">${dpStr}</td>
+    </tr>`;
   });
-  html+='</tbody></table>';
-  document.getElementById('compareTable').innerHTML=html;
+
+  html += '</tbody></table>';
+  document.getElementById('compareTable').innerHTML = html;
 }
 
 initFns.compare = function(){
-  const sA=document.getElementById('periodA'), sB=document.getElementById('periodB');
-  D.monthly.forEach((m,i)=>{
-    sA.innerHTML+=`<option value="${i}">${m.label}</option>`;
-    sB.innerHTML+=`<option value="${i}">${m.label}</option>`;
-  });
-  sA.value=D.monthly.length-2; sB.value=D.monthly.length-1;
-  const upd=()=>renderCompare(+sA.value,+sB.value);
-  sA.onchange=upd; sB.onchange=upd; upd();
+  const tA=document.getElementById('cmpTypeA'), vA=document.getElementById('cmpValA');
+  const tB=document.getElementById('cmpTypeB'), vB=document.getElementById('cmpValB');
+  let _initB = false;
+  function upd() {
+    const keysA = getMonthKeys(tA.value, vA.value);
+    const keysB = getMonthKeys(tB.value, vB.value);
+    renderCompare(keysA, keysB, getPeriodLabel(tA.value,vA.value), getPeriodLabel(tB.value,vB.value));
+  }
+  // Fill A first, then B with offset -1 default
+  fillPeriodSelect(tA, vA, upd);
+  fillPeriodSelect(tB, vB, upd);
+  // Set B default to second option (previous month)
+  if (vB.options.length > 1) { vB.selectedIndex = 1; upd(); }
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -747,11 +903,47 @@ function hBarChart(id, items, colorFn){
   });
 }
 
+function aggByField(keys, fieldIdx) {
+  const acc = {};
+  keys.forEach(k => {
+    (D.projects_per_month[k]||[]).forEach(p => {
+      const parts = p.name.split('_');
+      const name  = (parts[fieldIdx]||'').trim();
+      if (!name) return;
+      if (!acc[name]) acc[name] = {name, revSum:0, finSum:0};
+      acc[name].revSum += p.rev;
+      // Approximate fin from margin%: fin = rev * margin/100
+      acc[name].finSum += p.rev * (p.margin/100);
+    });
+  });
+  return Object.values(acc)
+    .map(a => ({name:a.name, rev:a.revSum, margin: a.revSum>0 ? a.finSum/a.revSum*100 : 0}))
+    .sort((a,b)=>b.rev-a.rev)
+    .slice(0,15);
+}
+
 initFns.clients = function(){
-  charts.clients = hBarChart('clientsChart', D.clients,
-    c=>c.margin>=15?'rgba(102,187,106,.75)':c.margin>=8?'rgba(255,167,38,.75)':'rgba(239,83,80,.65)');
-  charts.cities  = hBarChart('citiesChart',  D.cities,
-    c=>c.margin>=15?'rgba(92,107,192,.75)':c.margin>=8?'rgba(38,198,218,.65)':'rgba(148,163,184,.5)');
+  const selType = document.getElementById('clientsPeriodType');
+  const selVal  = document.getElementById('clientsPeriodVal');
+
+  function renderClients() {
+    const type = selType.value, val = selVal.value;
+    const keys = getMonthKeys(type, val);
+    const lbl  = getPeriodLabel(type, val);
+    document.getElementById('clientsPeriodLabel').textContent = lbl;
+    document.getElementById('citiesPeriodLabel').textContent  = lbl;
+
+    const clients = aggByField(keys, 0);
+    const cities  = aggByField(keys, 1);
+
+    destroyChart('clientsChart'); destroyChart('citiesChart');
+    charts.clients = hBarChart('clientsChart', clients,
+      c=>c.margin>=15?'rgba(102,187,106,.75)':c.margin>=8?'rgba(255,167,38,.75)':'rgba(239,83,80,.65)');
+    charts.cities  = hBarChart('citiesChart', cities,
+      c=>c.margin>=15?'rgba(92,107,192,.75)':c.margin>=8?'rgba(38,198,218,.65)':'rgba(148,163,184,.5)');
+  }
+
+  fillPeriodSelect(selType, selVal, renderClients);
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
