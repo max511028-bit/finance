@@ -379,8 +379,7 @@ tr:hover td{background:rgba(92,107,192,.05)}
 .pl-top0{font-weight:700}
 .pl-top0-total{font-weight:700;background:rgba(92,107,192,.07)}
 
-/* Tooltip via title - enhanced */
-[title]{position:relative}
+/* pl-label cursor help handled inline */
 
 /* Anomaly sections */
 .anom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -389,27 +388,59 @@ tr:hover td{background:rgba(92,107,192,.05)}
 
 .footer{text-align:center;padding:16px;color:var(--muted);font-size:11px;
         border-top:1px solid var(--border);margin-top:10px}
+
+/* Home page */
+.home-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;
+           min-height:calc(100vh - 52px);padding:40px 20px;text-align:center}
+.home-logo-row{display:flex;align-items:center;gap:14px;margin-bottom:10px;justify-content:center}
+.home-logo-row h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
+.home-tagline{font-size:15px;color:var(--muted);margin-bottom:52px;letter-spacing:.02em}
+.home-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:860px;width:100%}
+@media(max-width:700px){.home-cards{grid-template-columns:1fr}}
+.home-card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+           padding:36px 24px 30px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+.home-card:hover{border-color:var(--accent);transform:translateY(-3px);
+                 box-shadow:0 12px 32px rgba(0,0,0,.25)}
+.home-card-icon{font-size:40px;margin-bottom:18px;display:block}
+.home-card-name{font-size:17px;font-weight:700;margin-bottom:8px}
+.home-card-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.home-card-badge{position:absolute;top:14px;right:14px;font-size:10px;font-weight:600;
+                 padding:2px 8px;border-radius:20px}
+.badge-ready{background:rgba(102,187,106,.15);color:var(--green)}
+.badge-soon{background:rgba(255,167,38,.12);color:var(--amber)}
+.home-card-line{position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+
+/* Placeholder page */
+.placeholder-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  min-height:calc(100vh - 120px);gap:16px;color:var(--muted)}
+.placeholder-wrap .ph-icon{font-size:56px}
+.placeholder-wrap h2{font-size:20px;font-weight:700;color:var(--text)}
+.placeholder-wrap p{font-size:13px;max-width:340px;text-align:center;line-height:1.6}
 </style>
 </head>
 <body>
 
 <!-- Header -->
 <header class="hdr">
-  <div class="hdr-brand">
-    <span style="font-size:20px">&#128202;</span>
+  <div id="hdr-home-state" class="hdr-brand">
+    <span style="font-size:22px">&#128202;</span>
     <div>
       <h1>STH-group</h1>
-      <span class="sub">&#1056;&#1077;&#1085;&#1090;&#1072;&#1073;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1100; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1086;&#1074;</span>
+      <span class="sub">&#1060;&#1080;&#1085;&#1072;&#1085;&#1089;&#1086;&#1074;&#1072;&#1103; &#1086;&#1090;&#1095;&#1105;&#1090;&#1085;&#1086;&#1089;&#1090;&#1100;</span>
     </div>
   </div>
+  <div id="hdr-report-state" style="display:none;align-items:center;gap:12px">
+    <button class="btn-sm" onclick="showPage('home')" style="font-size:13px">&#8592; &#1043;&#1083;&#1072;&#1074;&#1085;&#1072;&#1103;</button>
+    <span id="hdr-report-name" style="font-weight:700;font-size:15px"></span>
+  </div>
   <div class="hdr-right">
-    <span class="badge" id="period-badge"></span>
+    <span class="badge" id="period-badge" style="display:none"></span>
     <button class="btn-sm" id="theme-btn" onclick="toggleTheme()">&#9728; &#1057;&#1074;&#1077;&#1090;&#1083;&#1072;&#1103;</button>
   </div>
 </header>
 
-<!-- Tab bar -->
-<nav class="tab-bar">
+<!-- Tab bar (only for Рентабельность) -->
+<nav class="tab-bar" id="main-tabs" style="display:none">
   <button class="tab-btn active" onclick="showTab('main',this)">&#127968;&nbsp;&#1043;&#1083;&#1072;&#1074;&#1085;&#1072;&#1103;</button>
   <button class="tab-btn" onclick="showTab('trends',this)">&#128200;&nbsp;&#1058;&#1088;&#1077;&#1085;&#1076;&#1099;</button>
   <button class="tab-btn" onclick="showTab('general',this)">&#128203;&nbsp;&#1054;&#1073;&#1097;&#1080;&#1081;</button>
@@ -417,6 +448,56 @@ tr:hover td{background:rgba(92,107,192,.05)}
   <button class="tab-btn" onclick="showTab('anomalies',this)">&#128269;&nbsp;&#1040;&#1085;&#1086;&#1084;&#1072;&#1083;&#1080;&#1080;</button>
   <button class="tab-btn" onclick="showTab('clients',this)">&#127962;&nbsp;&#1050;&#1083;&#1080;&#1077;&#1085;&#1090;&#1099;&nbsp;&amp;&nbsp;&#1043;&#1086;&#1088;&#1086;&#1076;&#1072;</button>
 </nav>
+
+<!-- ═══ PAGE: ГЛАВНАЯ (лендинг) ════════════════════════════════════════════════ -->
+<div id="page-home">
+  <div class="home-wrap">
+    <div class="home-logo-row">
+      <span style="font-size:38px">&#128202;</span>
+      <h1>STH-group</h1>
+    </div>
+    <p class="home-tagline">&#1060;&#1080;&#1085;&#1072;&#1085;&#1089;&#1086;&#1074;&#1072;&#1103; &#1086;&#1090;&#1095;&#1105;&#1090;&#1085;&#1086;&#1089;&#1090;&#1100; &#183; &#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1088;&#1072;&#1079;&#1076;&#1077;&#1083;</p>
+    <div class="home-cards">
+
+      <div class="home-card" onclick="showPage('cf')">
+        <div class="home-card-line" style="background:var(--teal)"></div>
+        <span class="home-card-badge badge-soon">&#1057;&#1082;&#1086;&#1088;&#1086;</span>
+        <span class="home-card-icon">&#128176;</span>
+        <div class="home-card-name">CF &#1054;&#1090;&#1095;&#1105;&#1090;</div>
+        <div class="home-card-desc">&#1054;&#1090;&#1095;&#1105;&#1090; &#1086; &#1076;&#1074;&#1080;&#1078;&#1077;&#1085;&#1080;&#1080; &#1076;&#1077;&#1085;&#1077;&#1078;&#1085;&#1099;&#1093; &#1089;&#1088;&#1077;&#1076;&#1089;&#1090;&#1074;. &#1040;&#1085;&#1072;&#1083;&#1080;&#1079; &#1087;&#1086;&#1089;&#1090;&#1091;&#1087;&#1083;&#1077;&#1085;&#1080;&#1081; &#1080; &#1074;&#1099;&#1087;&#1083;&#1072;&#1090; &#1087;&#1086; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1072;&#1084;.</div>
+      </div>
+
+      <div class="home-card" onclick="showPage('rent')">
+        <div class="home-card-line" style="background:var(--accent)"></div>
+        <span class="home-card-badge badge-ready">&#1044;&#1086;&#1089;&#1090;&#1091;&#1087;&#1077;&#1085;</span>
+        <span class="home-card-icon">&#128200;</span>
+        <div class="home-card-name">&#1054;&#1090;&#1095;&#1105;&#1090; &#1087;&#1086; &#1088;&#1077;&#1085;&#1090;&#1072;&#1073;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1080;</div>
+        <div class="home-card-desc">&#1040;&#1085;&#1072;&#1083;&#1080;&#1079; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1086;&#1074; &#1080; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1086;&#1074;: &#1074;&#1099;&#1088;&#1091;&#1095;&#1082;&#1072;, &#1088;&#1072;&#1089;&#1093;&#1086;&#1076;&#1099;, &#1088;&#1077;&#1085;&#1090;&#1072;&#1073;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1100;, &#1090;&#1088;&#1077;&#1085;&#1076;&#1099; &#1087;&#1086; 26 &#1084;&#1077;&#1089;&#1103;&#1094;&#1072;&#1084;.</div>
+      </div>
+
+      <div class="home-card" onclick="showPage('pl')">
+        <div class="home-card-line" style="background:var(--purple)"></div>
+        <span class="home-card-badge badge-soon">&#1057;&#1082;&#1086;&#1088;&#1086;</span>
+        <span class="home-card-icon">&#128203;</span>
+        <div class="home-card-name">P&amp;L &#1054;&#1090;&#1095;&#1105;&#1090;</div>
+        <div class="home-card-desc">&#1055;&#1086;&#1083;&#1085;&#1099;&#1081; &#1086;&#1090;&#1095;&#1105;&#1090; &#1086; &#1087;&#1088;&#1080;&#1073;&#1099;&#1083;&#1103;&#1093; &#1080; &#1091;&#1073;&#1099;&#1090;&#1082;&#1072;&#1093;. &#1044;&#1077;&#1090;&#1072;&#1083;&#1100;&#1085;&#1072;&#1103; &#1089;&#1090;&#1088;&#1091;&#1082;&#1090;&#1091;&#1088;&#1072; &#1076;&#1086;&#1093;&#1086;&#1076;&#1086;&#1074; &#1080; &#1088;&#1072;&#1089;&#1093;&#1086;&#1076;&#1086;&#1074;.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: CF (заглушка) ════════════════════════════════════════════════════ -->
+<div id="page-cf" style="display:none">
+  <div class="placeholder-wrap">
+    <span class="ph-icon">&#128176;</span>
+    <h2>CF &#1054;&#1090;&#1095;&#1105;&#1090;</h2>
+    <p>&#1056;&#1072;&#1079;&#1076;&#1077;&#1083; &#1074; &#1088;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1077;. &#1047;&#1076;&#1077;&#1089;&#1100; &#1087;&#1086;&#1103;&#1074;&#1080;&#1090;&#1089;&#1103; &#1086;&#1090;&#1095;&#1105;&#1090; &#1086; &#1076;&#1074;&#1080;&#1078;&#1077;&#1085;&#1080;&#1080; &#1076;&#1077;&#1085;&#1077;&#1078;&#1085;&#1099;&#1093; &#1089;&#1088;&#1077;&#1076;&#1089;&#1090;&#1074; &#1087;&#1086;&#1089;&#1083;&#1077; &#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080; &#1089;&#1086;&#1086;&#1090;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1091;&#1102;&#1097;&#1080;&#1093; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;.</p>
+  </div>
+</div>
+
+<!-- ═══ PAGE: РЕНТАБЕЛЬНОСТЬ ═══════════════════════════════════════════════════ -->
+<div id="page-rent" style="display:none">
 
 <!-- ═══ TAB: ГЛАВНАЯ ═══════════════════════════════════════════════════════════ -->
 <div id="tab-main" class="tab-content active">
@@ -485,6 +566,16 @@ tr:hover td{background:rgba(92,107,192,.05)}
       </div>
       <div class="tbl-wrap"><div id="compareTable"></div></div>
     </div>
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">&#128101; &#1057;&#1088;&#1072;&#1074;&#1085;&#1077;&#1085;&#1080;&#1077; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1086;&#1074;</div>
+        <div class="ctrl" style="margin:0">
+          <input id="projectSearch" type="text" placeholder="&#1055;&#1086;&#1080;&#1089;&#1082; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;..."
+            style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;min-width:220px;outline:none">
+        </div>
+      </div>
+      <div class="tbl-wrap"><div id="projectCompare"></div></div>
+    </div>
   </div>
 </div>
 
@@ -536,6 +627,17 @@ tr:hover td{background:rgba(92,107,192,.05)}
         <div class="chart-bar"><canvas id="citiesChart"></canvas></div>
       </div>
     </div>
+  </div>
+</div>
+
+</div><!-- /page-rent -->
+
+<!-- ═══ PAGE: P&L (заглушка) ══════════════════════════════════════════════════ -->
+<div id="page-pl" style="display:none">
+  <div class="placeholder-wrap">
+    <span class="ph-icon">&#128203;</span>
+    <h2>P&amp;L &#1054;&#1090;&#1095;&#1105;&#1090;</h2>
+    <p>&#1056;&#1072;&#1079;&#1076;&#1077;&#1083; &#1074; &#1088;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1077;. &#1047;&#1076;&#1077;&#1089;&#1100; &#1087;&#1086;&#1103;&#1074;&#1080;&#1090;&#1089;&#1103; &#1087;&#1086;&#1083;&#1085;&#1099;&#1081; &#1086;&#1090;&#1095;&#1105;&#1090; &#1086; &#1087;&#1088;&#1080;&#1073;&#1099;&#1083;&#1103;&#1093; &#1080; &#1091;&#1073;&#1099;&#1090;&#1082;&#1072;&#1093; &#1087;&#1086;&#1089;&#1083;&#1077; &#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;.</p>
   </div>
 </div>
 
@@ -628,6 +730,17 @@ function aggregatePlRows(keys) {
   }).filter(r => r.value !== 0);
 }
 
+function sortBCode(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = i < pa.length ? pa[i] : 0;
+    const nb = i < pb.length ? pb[i] : 0;
+    if (na !== nb) return na - nb;
+  }
+  return 0;
+}
+
 function aggMonthly(keys) {
   const ms = D.monthly.filter(m => keys.includes(m.key));
   if (!ms.length) return null;
@@ -672,6 +785,36 @@ function showTab(name, btn){
   document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
   if(!inited[name] && initFns[name]){ initFns[name](); inited[name]=true; }
+}
+
+// ── Page navigation ───────────────────────────────────────────────────────────
+const PAGE_NAMES = {
+  cf:   'CF &#1054;&#1090;&#1095;&#1105;&#1090;',
+  rent: '&#1054;&#1090;&#1095;&#1105;&#1090; &#1087;&#1086; &#1088;&#1077;&#1085;&#1090;&#1072;&#1073;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1080;',
+  pl:   'P&amp;L &#1054;&#1090;&#1095;&#1105;&#1090;',
+};
+
+function showPage(name) {
+  ['home','cf','rent','pl'].forEach(p => {
+    const el = document.getElementById('page-'+p);
+    if (el) el.style.display = (p === name) ? '' : 'none';
+  });
+
+  const isHome = name === 'home';
+  document.getElementById('hdr-home-state').style.display   = isHome ? '' : 'none';
+  document.getElementById('hdr-report-state').style.display = isHome ? 'none' : 'flex';
+  document.getElementById('main-tabs').style.display        = name === 'rent' ? '' : 'none';
+  document.getElementById('period-badge').style.display     = name === 'rent' ? '' : 'none';
+
+  if (!isHome) {
+    document.getElementById('hdr-report-name').innerHTML = PAGE_NAMES[name] || name;
+  }
+
+  if (name === 'rent' && !inited.main) {
+    initFns.main(); inited.main = true;
+  }
+
+  document.documentElement.scrollTop = 0;
 }
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -948,7 +1091,7 @@ function renderGeneral(rows){
     html += `<tr class="${rowCls}">
       <td class="pl-code">${r.b}</td>
       <td style="padding-left:${indent}px">
-        <span class="pl-label" title="${tip}">${r.label}</span>
+        <span class="pl-label" title="${tip}" style="cursor:help">${r.label}</span>
       </td>
       <td class="pl-val">${valStr}</td>
       <td class="pl-share">${shareStr}</td>
@@ -982,6 +1125,7 @@ function renderCompare(keysA, keysB, labelA, labelB) {
   const mapB = Object.fromEntries(rowsB.map(r=>[r.b,r]));
   const order = [], seen = new Set();
   [...rowsA,...rowsB].forEach(r => { if(!seen.has(r.b)){seen.add(r.b);order.push(r);} });
+  order.sort((a,b) => sortBCode(a.b, b.b));
 
   let html = `<table><thead><tr>
     <th class="pl-code">&#1050;&#1086;&#1076;</th>
@@ -999,28 +1143,23 @@ function renderCompare(keysA, keysB, labelA, labelB) {
     const isDecPct = Math.abs(refVal) <= 1.5 && refVal !== 0;
     const fv = isDecPct ? v => fmtPct(v*100) : fmtRub;
     const indent = r.indent * 18 + 4;
-    const tip = PL_DESC[r.b] || ('&#1050;&#1086;&#1076; ' + r.b);
+    const tip = PL_DESC[r.b] || ('Код ' + r.b);
     const rowCls = r.indent===0 ? (/^\d+$/.test(r.b)?'pl-top0-total':'pl-top0') : '';
 
-    let vAstr, vBstr, dStr = '&#8212;', dpStr = '&#8212;';
-    if (!rA) {
-      vAstr = `<span style="color:var(--muted)" title="&#1085;&#1077;&#1090; &#1074; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1077; &#1040;">&#8212;</span>`;
-      vBstr = fv(rB.value);
-    } else if (!rB) {
-      vAstr = fv(rA.value);
-      vBstr = `<span style="color:var(--muted)" title="&#1085;&#1077;&#1090; &#1074; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1077; &#1041;">&#8212;</span>`;
-    } else {
-      const va=rA.value, vb=rB.value, d=vb-va;
-      const dp = va!==0 ? d/Math.abs(va)*100 : 0;
-      const cls = d>=0?'pos':'neg';
-      vAstr = fv(va); vBstr = fv(vb);
-      dStr  = `<span class="${cls}">${sign(d)}${fv(d)}</span>`;
-      dpStr = `<span class="${cls}">${sign(dp)}${dp.toFixed(1)}%</span>`;
-    }
+    const va = rA ? rA.value : 0;
+    const vb = rB ? rB.value : 0;
+    const d  = vb - va;
+    const dp = va !== 0 ? d/Math.abs(va)*100 : (vb !== 0 ? 100 : 0);
+    const cls = d >= 0 ? 'pos' : 'neg';
+
+    const vAstr = rA ? fv(va) : `<span style="color:var(--muted)" title="нет в периоде А">0</span>`;
+    const vBstr = rB ? fv(vb) : `<span style="color:var(--muted)" title="нет в периоде Б">0</span>`;
+    const dStr  = `<span class="${cls}">${sign(d)}${fv(d)}</span>`;
+    const dpStr = `<span class="${cls}">${sign(dp)}${dp.toFixed(1)}%</span>`;
 
     html += `<tr class="${rowCls}">
       <td class="pl-code">${r.b}</td>
-      <td style="padding-left:${indent}px"><span class="pl-label" title="${tip}">${r.label}</span></td>
+      <td style="padding-left:${indent}px"><span class="pl-label" title="${tip}" style="cursor:help">${r.label}</span></td>
       <td class="td-r">${vAstr}</td>
       <td class="td-r">${vBstr}</td>
       <td class="td-r">${dStr}</td>
@@ -1032,19 +1171,73 @@ function renderCompare(keysA, keysB, labelA, labelB) {
   document.getElementById('compareTable').innerHTML = html;
 }
 
+function renderProjectCompare(keysA, keysB, labelA, labelB, filter) {
+  const mapA = {}, mapB = {};
+  keysA.forEach(k => (D.projects_per_month[k]||[]).forEach(p => {
+    if (!mapA[p.name]) mapA[p.name] = {rev:0, finSum:0};
+    mapA[p.name].rev += p.rev; mapA[p.name].finSum += p.rev*(p.margin/100);
+  }));
+  keysB.forEach(k => (D.projects_per_month[k]||[]).forEach(p => {
+    if (!mapB[p.name]) mapB[p.name] = {rev:0, finSum:0};
+    mapB[p.name].rev += p.rev; mapB[p.name].finSum += p.rev*(p.margin/100);
+  }));
+  const allNames = [...new Set([...Object.keys(mapA),...Object.keys(mapB)])].sort();
+  const fl = filter.toLowerCase().trim();
+  const rows = allNames
+    .filter(n => !fl || n.toLowerCase().includes(fl))
+    .map(n => {
+      const a = mapA[n], b = mapB[n];
+      const revA = a?a.rev:0, revB = b?b.rev:0;
+      const marA = a&&a.rev>0?a.finSum/a.rev*100:0;
+      const marB = b&&b.rev>0?b.finSum/b.rev*100:0;
+      return {n, revA, revB, marA, marB};
+    })
+    .sort((a,b)=>b.revB-a.revB||b.revA-a.revA);
+  if (!rows.length) {
+    document.getElementById('projectCompare').innerHTML =
+      '<div style="color:var(--muted);padding:16px;font-size:12px">Нет проектов</div>'; return;
+  }
+  let html = `<table><thead><tr>
+    <th>&#1055;&#1088;&#1086;&#1077;&#1082;&#1090;</th>
+    <th class="td-r">&#1042;&#1099;&#1088;&#1091;&#1095;&#1082;&#1072; ${labelA}</th>
+    <th class="td-r">&#1042;&#1099;&#1088;&#1091;&#1095;&#1082;&#1072; ${labelB}</th>
+    <th class="td-r">&#916; &#1074;&#1099;&#1088;.</th>
+    <th class="td-r">&#1056;&#1077;&#1085;&#1090;. ${labelA}</th>
+    <th class="td-r">&#1056;&#1077;&#1085;&#1090;. ${labelB}</th>
+    <th class="td-r">&#916; &#1088;&#1077;&#1085;&#1090;.</th>
+  </tr></thead><tbody>`;
+  rows.forEach(r => {
+    const dr = r.revB-r.revA, dm = r.marB-r.marA;
+    const chipA = r.marA>=15?'chip-g':r.marA>=8?'chip-a':'chip-r';
+    const chipB = r.marB>=15?'chip-g':r.marB>=8?'chip-a':'chip-r';
+    const noA = !mapA[r.n], noB = !mapB[r.n];
+    html += `<tr>
+      <td style="font-size:12px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.n}">${r.n}</td>
+      <td class="td-r ${noA?'':''}"><span ${noA?'style="color:var(--muted)"':''}>${noA?'0':fmtRub(r.revA)}</span></td>
+      <td class="td-r"><span ${noB?'style="color:var(--muted)"':''}>${noB?'0':fmtRub(r.revB)}</span></td>
+      <td class="td-r"><span class="${dr>=0?'pos':'neg'}">${sign(dr)}${fmtRub(dr)}</span></td>
+      <td class="td-r">${r.marA>0?`<span class="chip ${chipA}">${fmtPct(r.marA)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td class="td-r">${r.marB>0?`<span class="chip ${chipB}">${fmtPct(r.marB)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td class="td-r"><span class="${dm>=0?'pos':'neg'}">${sign(dm)}${fmtPct(dm)}</span></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('projectCompare').innerHTML = html;
+}
+
 initFns.compare = function(){
   const tA=document.getElementById('cmpTypeA'), vA=document.getElementById('cmpValA');
   const tB=document.getElementById('cmpTypeB'), vB=document.getElementById('cmpValB');
-  let _initB = false;
+  const srch=document.getElementById('projectSearch');
   function upd() {
-    const keysA = getMonthKeys(tA.value, vA.value);
-    const keysB = getMonthKeys(tB.value, vB.value);
-    renderCompare(keysA, keysB, getPeriodLabel(tA.value,vA.value), getPeriodLabel(tB.value,vB.value));
+    const keysA=getMonthKeys(tA.value,vA.value), keysB=getMonthKeys(tB.value,vB.value);
+    const lA=getPeriodLabel(tA.value,vA.value), lB=getPeriodLabel(tB.value,vB.value);
+    renderCompare(keysA,keysB,lA,lB);
+    renderProjectCompare(keysA,keysB,lA,lB,srch.value);
   }
-  // Fill A first, then B with offset -1 default
+  srch.oninput = upd;
   fillPeriodSelect(tA, vA, upd);
   fillPeriodSelect(tB, vB, upd);
-  // Set B default to second option (previous month)
   if (vB.options.length > 1) { vB.selectedIndex = 1; upd(); }
 };
 
@@ -1153,20 +1346,41 @@ function hBarChart(id, items, colorFn){
   });
 }
 
-function aggByField(keys, fieldIdx) {
+function buildRefExtractor(refs) {
+  // sorted longest first so "Лемана Про" matches before "Лемана"
+  const sorted = refs.slice().sort((a,b)=>b.length-a.length);
+  return function(pname) {
+    const lower = pname.toLowerCase();
+    for (const ref of sorted) {
+      const rl = ref.toLowerCase();
+      if (lower === rl || lower.startsWith(rl+' ') || lower.startsWith(rl+'_')) return ref;
+    }
+    return null;
+  };
+}
+
+function aggByField(keys, isCity) {
+  // Build extractors from SVOD reference data if available
+  const clientRefs = D.clients.map(c=>c.name);
+  const cityRefs   = D.cities.map(c=>c.name);
+  const getClient  = clientRefs.length ? buildRefExtractor(clientRefs) : n=>n.split(/[\s_]+/)[0];
+  const getCity    = cityRefs.length   ? buildRefExtractor(cityRefs)   : n=>{
+    const words = n.split(/[\s_]+/);
+    return words[words.length-1]||n;
+  };
+
   const acc = {};
   keys.forEach(k => {
     (D.projects_per_month[k]||[]).forEach(p => {
-      const parts = p.name.split('_');
-      const name  = (parts[fieldIdx]||'').trim();
+      const name = isCity ? getCity(p.name) : getClient(p.name);
       if (!name) return;
       if (!acc[name]) acc[name] = {name, revSum:0, finSum:0};
       acc[name].revSum += p.rev;
-      // Approximate fin from margin%: fin = rev * margin/100
       acc[name].finSum += p.rev * (p.margin/100);
     });
   });
   return Object.values(acc)
+    .filter(a => a.revSum > 0)
     .map(a => ({name:a.name, rev:a.revSum, margin: a.revSum>0 ? a.finSum/a.revSum*100 : 0}))
     .sort((a,b)=>b.rev-a.rev)
     .slice(0,15);
@@ -1183,8 +1397,8 @@ initFns.clients = function(){
     document.getElementById('clientsPeriodLabel').textContent = lbl;
     document.getElementById('citiesPeriodLabel').textContent  = lbl;
 
-    const clients = aggByField(keys, 0);
-    const cities  = aggByField(keys, 1);
+    const clients = aggByField(keys, false);
+    const cities  = aggByField(keys, true);
 
     destroyChart('clientsChart'); destroyChart('citiesChart');
     charts.clients = hBarChart('clientsChart', clients,
@@ -1200,7 +1414,7 @@ initFns.clients = function(){
 // Init
 // ══════════════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', ()=>{
-  initFns.main(); inited.main=true;
+  showPage('home');
 });
 </script>
 </body>
