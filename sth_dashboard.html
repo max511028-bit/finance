@@ -243,6 +243,7 @@ select[multiple] option{padding:5px 8px}
 .placeholder-wrap .ph-icon{font-size:56px}
 .placeholder-wrap h2{font-size:20px;font-weight:700;color:var(--text)}
 .placeholder-wrap p{font-size:13px;max-width:340px;text-align:center;line-height:1.6}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 </style>
 </head>
 <body>
@@ -263,6 +264,7 @@ select[multiple] option{padding:5px 8px}
   <div class="hdr-right">
     <span class="badge" id="period-badge" style="display:none"></span>
     <button class="btn-sm" onclick="openChangelog()" data-tip="&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1103; &#1086; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;">&#9432; &#1044;&#1072;&#1085;&#1085;&#1099;&#1077;</button>
+    <button class="btn-sm" id="ai-btn" onclick="openAIChat()">&#129302; AI</button>
     <button class="btn-sm" id="theme-btn" onclick="toggleTheme()">&#9728; &#1057;&#1074;&#1077;&#1090;&#1083;&#1072;&#1103;</button>
   </div>
 </header>
@@ -336,11 +338,15 @@ select[multiple] option{padding:5px 8px}
   <div class="gap">
     <div class="ctrl" style="margin-bottom:0">
       <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
-      <select id="mainPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+      <select id="mainPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
       <select id="mainPeriodVal"></select>
     </div>
     <div class="kpi-grid" id="kpi-main"></div>
-    <div class="alerts" id="alerts-main"></div>
+    <div id="zp-trend-main"></div>
+    <div class="card" id="ytd-card" style="display:none">
+      <div class="card-title" style="margin-bottom:10px">&#128201; YTD &mdash; &#1089;&#1088;&#1072;&#1074;&#1085;&#1077;&#1085;&#1080;&#1077; &#1086;&#1076;&#1080;&#1085;&#1072;&#1082;&#1086;&#1074;&#1099;&#1093; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1086;&#1074; &#1087;&#1086; &#1075;&#1086;&#1076;&#1072;&#1084;</div>
+      <div id="ytd-table"></div>
+    </div>
     <div class="card" style="padding:14px 18px">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <span style="font-size:13px;font-weight:600">&#9881;&#65039; &#1055;&#1086;&#1088;&#1086;&#1075;&#1080; &#1088;&#1077;&#1085;&#1090;&#1072;&#1073;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1080;</span>
@@ -423,7 +429,7 @@ select[multiple] option{padding:5px 8px}
         <div class="card-title">&#128203; &#1042;&#1089;&#1077; &#1087;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1077;&#1083;&#1080; &#1079;&#1072; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;</div>
         <div class="ctrl" style="margin:0;gap:8px">
           <span class="lbl">&#1058;&#1080;&#1087;:</span>
-          <select id="generalPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+          <select id="generalPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
           <select id="generalPeriodVal"></select>
           <button class="export-btn" onclick="exportCurrentGeneral()">&#128229; CSV</button>
         </div>
@@ -447,10 +453,10 @@ select[multiple] option{padding:5px 8px}
       <div class="card-hdr">
         <div class="card-title">&#9878;&#65039; &#1057;&#1088;&#1072;&#1074;&#1085;&#1077;&#1085;&#1080;&#1077; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076;&#1086;&#1074;</div>
         <div class="ctrl" style="margin:0;flex-wrap:wrap">
-          <select id="cmpTypeA"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+          <select id="cmpTypeA"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
           <select id="cmpValA"></select>
           <span class="sep">&#8594;</span>
-          <select id="cmpTypeB"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+          <select id="cmpTypeB"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
           <select id="cmpValB"></select>
         </div>
       </div>
@@ -474,7 +480,7 @@ select[multiple] option{padding:5px 8px}
   <div class="gap">
     <div class="ctrl">
       <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
-      <select id="anomPeriodType"><option value="month" selected>&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option></select>
+      <select id="anomPeriodType"><option value="month" selected>&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year">&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
       <select id="anomPeriodVal"></select>
       <span id="anomaly-stats" class="anom-stats" style="margin-left:12px"></span>
       <button class="export-btn" onclick="exportCurrentAnomalies()">&#128229; CSV</button>
@@ -538,7 +544,7 @@ select[multiple] option{padding:5px 8px}
   <div class="gap">
     <div class="ctrl">
       <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
-      <select id="projPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option></select>
+      <select id="projPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
       <select id="projPeriodVal"></select>
       <input id="projSearchInput" type="text" placeholder="&#1055;&#1086;&#1080;&#1089;&#1082; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;..."
         style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;min-width:240px;outline:none">
@@ -560,7 +566,7 @@ select[multiple] option{padding:5px 8px}
   <div class="gap">
     <div class="ctrl">
       <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
-      <select id="divPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option></select>
+      <select id="divPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
       <select id="divPeriodVal"></select>
       <span id="div-stats" style="font-size:12px;color:var(--muted)"></span>
       <button class="export-btn" onclick="exportCurrentDivisions()">&#128229; CSV</button>
@@ -589,17 +595,21 @@ select[multiple] option{padding:5px 8px}
   <div class="gap">
     <div class="ctrl">
       <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
-      <select id="clientsPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option></select>
+      <select id="clientsPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
       <select id="clientsPeriodVal"></select>
+      <span class="lbl" style="margin-left:12px">&#1057;&#1086;&#1088;&#1090;:</span>
+      <select id="clientsSortMode"><option value="rev">&#1055;&#1086; &#1074;&#1099;&#1088;&#1091;&#1095;&#1082;&#1077;</option><option value="margin">&#1055;&#1086; &#1088;&#1077;&#1085;&#1090;&#1072;&#1073;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1080;</option></select>
     </div>
     <div class="row2">
       <div class="card">
         <div class="card-title" style="margin-bottom:12px">&#127962; &#1058;&#1086;&#1087; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1086;&#1074; <span id="clientsPeriodLabel" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
         <div class="chart-bar"><canvas id="clientsChart"></canvas></div>
+        <div id="clientsLegend" style="display:flex;gap:12px;font-size:11px;margin-top:6px;color:var(--muted)"></div>
       </div>
       <div class="card">
         <div class="card-title" style="margin-bottom:12px">&#128506;&#65039; &#1058;&#1086;&#1087; &#1075;&#1086;&#1088;&#1086;&#1076;&#1086;&#1074; <span id="citiesPeriodLabel" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
         <div class="chart-bar"><canvas id="citiesChart"></canvas></div>
+        <div id="citiesLegend" style="display:flex;gap:12px;font-size:11px;margin-top:6px;color:var(--muted)"></div>
       </div>
     </div>
     <div class="card">
@@ -633,6 +643,43 @@ select[multiple] option{padding:5px 8px}
       style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);
              font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">&times;</button>
     <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- ═══ AI CHAT MODAL ════════════════════════════════════════════════════════ -->
+<div id="ai-overlay" onclick="if(event.target===this)closeAIChat()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:900;overflow-y:auto;padding:30px 16px">
+  <div id="ai-box" onclick="event.stopPropagation()"
+    style="background:var(--card);border:1px solid var(--border);border-radius:14px;max-width:700px;
+           margin:0 auto;padding:0;position:relative;display:flex;flex-direction:column;height:80vh;max-height:700px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">&#129302;</span>
+        <div>
+          <div style="font-weight:700;font-size:15px">AI-&#1072;&#1085;&#1072;&#1083;&#1080;&#1090;&#1080;&#1082; STH-group</div>
+          <div style="font-size:11px;color:var(--muted)">&#1054;&#1090;&#1074;&#1077;&#1095;&#1072;&#1077;&#1090; &#1090;&#1086;&#1083;&#1100;&#1082;&#1086; &#1085;&#1072; &#1086;&#1089;&#1085;&#1086;&#1074;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093; &#1086;&#1090;&#1095;&#1077;&#1090;&#1072;</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="clearAIChat()" class="btn-sm" style="font-size:11px">&#128465; &#1054;&#1095;&#1080;&#1089;&#1090;&#1080;&#1090;&#1100;</button>
+        <button onclick="closeAIChat()"
+          style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">&times;</button>
+      </div>
+    </div>
+    <div id="ai-messages" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px"></div>
+    <div id="ai-typing" style="display:none;padding:0 20px 8px;color:var(--muted);font-size:13px">
+      <span style="animation:pulse 1.2s ease-in-out infinite">&#8226;&#8226;&#8226; &#1044;&#1091;&#1084;&#1072;&#1102;...</span>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
+      <textarea id="ai-input" rows="2"
+        style="flex:1;resize:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+               color:var(--text);padding:8px 12px;font-size:13px;font-family:inherit"
+        placeholder="&#1047;&#1072;&#1076;&#1072;&#1081;&#1090;&#1077; &#1074;&#1086;&#1087;&#1088;&#1086;&#1089; &#1087;&#1086; &#1092;&#1080;&#1085;&#1072;&#1085;&#1089;&#1086;&#1074;&#1099;&#1084; &#1076;&#1072;&#1085;&#1085;&#1099;&#1084;..."></textarea>
+      <button onclick="sendAIMessage()" id="ai-send-btn" class="btn-sm"
+        style="padding:8px 16px;font-size:13px;height:fit-content;align-self:flex-end">
+        &#10148; &#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1080;&#1090;&#1100;
+      </button>
+    </div>
   </div>
 </div>
 
@@ -755,6 +802,7 @@ function openChangelog(){
 const MONTH_KEYS = D.monthly.map(m => m.key);
 
 function getMonthKeys(type, val) {
+  if (type === 'all') return MONTH_KEYS.slice();
   if (type === 'month') return [val];
   if (type === 'quarter') {
     const [q, yr] = val.split('-');
@@ -768,6 +816,7 @@ function getMonthKeys(type, val) {
 }
 
 function getPeriodLabel(type, val) {
+  if (type === 'all') return 'Всё время';
   if (type === 'month') { const m = D.monthly.find(m => m.key===val); return m ? m.label : val; }
   if (type === 'quarter') return val.replace('-',' ');
   return val;
@@ -789,6 +838,8 @@ function fillPeriodSelect(selType, selVal, onChange) {
         const qk=`Q${qn}-${yr}`;
         if (!seen.has(qk)) { seen.add(qk); selVal.innerHTML+=`<option value="${qk}">Q${qn} ${yr}</option>`; }
       });
+    } else if (t === 'all') {
+      selVal.innerHTML = '<option value="all">Всё время</option>';
     } else {
       const seen = new Set();
       D.monthly.slice().reverse().forEach(m => {
@@ -814,7 +865,7 @@ function fillPeriodSelect(selType, selVal, onChange) {
   // Restore saved type
   try {
     const sv=JSON.parse(sessionStorage.getItem(sKey)||'null');
-    if(sv&&sv.t&&['month','quarter','year'].includes(sv.t)) selType.value=sv.t;
+    if(sv&&sv.t&&['month','quarter','year','all'].includes(sv.t)) selType.value=sv.t;
   } catch(e){}
   rebuild();
 }
@@ -864,6 +915,7 @@ function aggMonthly(keys) {
 }
 
 function prevPeriod(type, val) {
+  if (type === 'all') return null;
   if (type === 'month') {
     const idx = MONTH_KEYS.indexOf(val);
     return idx > 0 ? MONTH_KEYS[idx-1] : null;
@@ -1006,25 +1058,58 @@ function initMain(){
         <div class="kpi-sub">${k.sub}</div>
       </div>`).join('');
 
-    const best  = D.monthly.reduce((a,b)=>a.margin_pct>b.margin_pct?a:b);
-    const worst = D.monthly.reduce((a,b)=>a.margin_pct<b.margin_pct?a:b);
+    // ЗП/Выручка: тренд за всё время
     const zpTrend = D.monthly[D.monthly.length-1].zp_rev_pct - D.monthly[0].zp_rev_pct;
-    document.getElementById('alerts-main').innerHTML = `
-      <div class="alert-box alert-g">
-        <div class="alert-title">🏆 Лучший месяц по рент-ти</div>
-        <div class="alert-val">${best.label} — ${fmtPct(best.margin_pct)}</div>
-        <div class="alert-sub">Выручка: ₽${fmtM(best.revenue)}</div>
-      </div>
-      <div class="alert-box alert-r">
-        <div class="alert-title">⚠️ Худший месяц по рент-ти</div>
-        <div class="alert-val">${worst.label} — ${fmtPct(worst.margin_pct)}</div>
-        <div class="alert-sub">Выручка: ₽${fmtM(worst.revenue)}</div>
-      </div>
-      <div class="alert-box ${zpTrend<0?'alert-g':'alert-r'}">
-        <div class="alert-title">📉 ЗП/Выручка: тренд за всё время</div>
+    document.getElementById('zp-trend-main').innerHTML = `
+      <div class="alert-box ${zpTrend<0?'alert-g':'alert-r'}" style="max-width:420px">
+        <div class="alert-title">&#128200; &#1047;&#1055;/&#1042;&#1099;&#1088;&#1091;&#1095;&#1082;&#1072;: &#1090;&#1088;&#1077;&#1085;&#1076; &#1079;&#1072; &#1074;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</div>
         <div class="alert-val">${sign(zpTrend)}${fmtPct(zpTrend)}</div>
-        <div class="alert-sub">${D.monthly[0].label}: ${fmtPct(D.monthly[0].zp_rev_pct)} → ${lastLabel}: ${fmtPct(D.monthly[D.monthly.length-1].zp_rev_pct)}</div>
+        <div class="alert-sub">${D.monthly[0].label}: ${fmtPct(D.monthly[0].zp_rev_pct)} &#8594; ${lastLabel}: ${fmtPct(D.monthly[D.monthly.length-1].zp_rev_pct)}</div>
       </div>`;
+
+    // YTD same-period comparison card
+    const curKey = MONTH_KEYS[MONTH_KEYS.length-1];
+    const curMM  = curKey.slice(0,2);
+    const allYears = [...new Set(MONTH_KEYS.map(k=>k.slice(3)))].sort();
+    const ytdRows = allYears.map(yr => {
+      const keys = MONTH_KEYS.filter(k => k.slice(3)===yr && k.slice(0,2)<=curMM);
+      if (!keys.length) return null;
+      const ms = D.monthly.filter(m => keys.includes(m.key));
+      const rev = ms.reduce((s,m)=>s+m.revenue,0);
+      const fin = ms.reduce((s,m)=>s+m.fin_res_biz,0);
+      const mar = rev>0 ? fin/rev*100 : 0;
+      return {yr, months:keys.length, rev, fin, mar};
+    }).filter(Boolean);
+    const curMLabel = D.monthly.find(m=>m.key===curKey)?.label || curMM;
+    const ytdCard = document.getElementById('ytd-card');
+    if (ytdRows.length >= 2) {
+      ytdCard.style.display = '';
+      const curRow = ytdRows[ytdRows.length-1];
+      let tbl = `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">&#1071;&#1085;&#1074;&#8201;&#8212;&#8201;${curMLabel} (${curRow.months}&#160;&#1084;&#1077;&#1089;.) &mdash; &#1086;&#1076;&#1080;&#1085;&#1072;&#1082;&#1086;&#1074;&#1099;&#1081; &#1087;&#1077;&#1088;&#1080;&#1086;&#1076; &#1087;&#1086; &#1074;&#1089;&#1077;&#1084; &#1075;&#1086;&#1076;&#1072;&#1084;</div>
+        <div class="tbl-wrap"><table style="font-size:13px"><thead><tr>
+          <th>&#1043;&#1086;&#1076;</th>
+          <th class="td-r">&#1042;&#1099;&#1088;&#1091;&#1095;&#1082;&#1072;</th>
+          <th class="td-r">&#1055;&#1088;&#1080;&#1073;&#1099;&#1083;&#1100;</th>
+          <th class="td-r">&#1056;&#1077;&#1085;&#1090;-&#1090;&#1100;</th>
+          <th class="td-r">&#916; &#1074;&#1099;&#1088;. &#1082; &#1087;&#1088;&#1077;&#1076;.</th>
+        </tr></thead><tbody>`;
+      ytdRows.forEach((r,i)=>{
+        const prev = i>0?ytdRows[i-1]:null;
+        const dr = prev ? r.rev-prev.rev : null;
+        const isCur = r.yr === curRow.yr;
+        const chip = chipCls(r.mar);
+        tbl += `<tr ${isCur?'class="row-bold"':''}>
+          <td>${r.yr}${isCur?' <span style="font-size:10px;color:var(--accent)">(&#1090;&#1077;&#1082;.)</span>':''}</td>
+          <td class="td-r">&#8381;${fmtM(r.rev)}</td>
+          <td class="td-r">&#8381;${fmtM(r.fin)}</td>
+          <td class="td-r"><span class="chip ${chip}">${fmtPct(r.mar)}</span></td>
+          <td class="td-r">${dr!==null?`<span class="${dr>=0?'pos':'neg'}">${sign(dr)}&#8381;${fmtM(dr)}</span>`:'—'}</td>
+        </tr>`;
+      });
+      document.getElementById('ytd-table').innerHTML = tbl + '</tbody></table></div>';
+    } else {
+      ytdCard.style.display = 'none';
+    }
   }
 
   // Sync threshold inputs with stored values
@@ -1045,6 +1130,8 @@ function initMain(){
       datasets:[
         {type:'bar',label:'Выручка, тыс.₽',data:mini.map(m=>Math.round(m.revenue/1e3)),
          backgroundColor:'rgba(92,107,192,.6)',yAxisID:'y',order:2},
+        {type:'bar',label:'Прибыль, тыс.₽',data:mini.map(m=>Math.round(m.fin_res_biz/1e3)),
+         backgroundColor:'rgba(102,187,106,.5)',yAxisID:'y',order:2},
         {type:'line',label:'Рент-ть %',data:mini.map(m=>m.margin_pct),
          borderColor:'#66bb6a',backgroundColor:'rgba(102,187,106,.1)',fill:true,
          tension:.3,yAxisID:'y2',order:1,pointRadius:4,borderWidth:2},
@@ -2066,7 +2153,7 @@ function buildCityExtractor(refs) {
   };
 }
 
-function aggByField(keys, isCity) {
+function aggByField(keys, isCity, sortBy='rev') {
   const clientRefs = D.clients.map(c=>c.name);
   const cityRefs   = D.cities.map(c=>c.name);
   const _clientFn  = clientRefs.length ? buildClientExtractor(clientRefs) : null;
@@ -2091,7 +2178,7 @@ function aggByField(keys, isCity) {
   return Object.values(acc)
     .filter(a => a.revSum > 0)
     .map(a => ({name:a.name, rev:a.revSum, margin: a.revSum>0 ? a.finSum/a.revSum*100 : 0}))
-    .sort((a,b)=>b.rev-a.rev)
+    .sort((a,b) => sortBy==='margin' ? b.margin-a.margin : b.rev-a.rev)
     .slice(0,15);
 }
 
@@ -2130,27 +2217,39 @@ function exportCurrentClients(){
 let _clsc='rev', _clsa=false;
 
 initFns.clients = function(){
-  const selType = document.getElementById('clientsPeriodType');
-  const selVal  = document.getElementById('clientsPeriodVal');
+  const selType    = document.getElementById('clientsPeriodType');
+  const selVal     = document.getElementById('clientsPeriodVal');
+  const selSort    = document.getElementById('clientsSortMode');
 
   function sortCl(col){ if(_clsc===col){_clsa=!_clsa;}else{_clsc=col;_clsa=false;} renderClients(); }
   window._sortCl = sortCl;
+
+  function renderLegend(id) {
+    const g = THRESHOLDS.good, w = THRESHOLDS.warn;
+    document.getElementById(id).innerHTML =
+      `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(102,187,106,.75);margin-right:3px"></span>&#8805;${g}%</span>`+
+      `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(255,167,38,.75);margin-right:3px"></span>&#8805;${w}%</span>`+
+      `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(239,83,80,.65);margin-right:3px"></span>&lt;${w}%</span>`;
+  }
 
   function renderClients() {
     const type = selType.value, val = selVal.value;
     const keys = getMonthKeys(type, val);
     const lbl  = getPeriodLabel(type, val);
+    const sortBy = selSort ? selSort.value : 'rev';
     document.getElementById('clientsPeriodLabel').textContent = lbl;
     document.getElementById('citiesPeriodLabel').textContent  = lbl;
 
-    const clients = aggByField(keys, false);
-    const cities  = aggByField(keys, true);
+    const clients = aggByField(keys, false, sortBy);
+    const cities  = aggByField(keys, true,  sortBy);
 
     destroyChart('clients'); destroyChart('cities');
     charts.clients = hBarChart('clientsChart', clients,
       c=>c.margin>=THRESHOLDS.good?'rgba(102,187,106,.75)':c.margin>=THRESHOLDS.warn?'rgba(255,167,38,.75)':'rgba(239,83,80,.65)');
     charts.cities  = hBarChart('citiesChart', cities,
       c=>c.margin>=THRESHOLDS.good?'rgba(92,107,192,.75)':c.margin>=THRESHOLDS.warn?'rgba(38,198,218,.65)':'rgba(148,163,184,.5)');
+    renderLegend('clientsLegend');
+    renderLegend('citiesLegend');
 
     // Full clients table
     const allClients = aggAllClients(keys);
@@ -2191,6 +2290,7 @@ initFns.clients = function(){
     document.getElementById('clientsTableDiv').innerHTML=html+'</tbody></table>';
   }
 
+  if (selSort) selSort.addEventListener('change', renderClients);
   fillPeriodSelect(selType, selVal, renderClients);
 };
 
@@ -2595,6 +2695,144 @@ function toggleAllGroups(tableId, expand) {
     if (!expand && isExp) toggleGroup(btn, parentB);
   });
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AI AGENT (Gemini)
+// ══════════════════════════════════════════════════════════════════════════════
+const GEMINI_KEY = 'AIzaSyCtVtFgnrlOc9tTSWGj5YjClL29sE5rvac';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${GEMINI_KEY}`;
+
+let _aiHistory = [];
+
+function _buildDataContext() {
+  const months = D.monthly.slice().sort((a,b)=>MONTH_KEYS.indexOf(a.key)-MONTH_KEYS.indexOf(b.key));
+  const firstKey = months[0]?.key||'', lastKey = months[months.length-1]?.key||'';
+  const MONTHS_RU = {
+    '01':'\u044f\u043d\u0432','\02':'\u0444\u0435\u0432','02':'\u0444\u0435\u0432',
+    '03':'\u043c\u0430\u0440','04':'\u0430\u043f\u0440','05':'\u043c\u0430\u0439','06':'\u0438\u044e\u043d',
+    '07':'\u0438\u044e\u043b','08':'\u0430\u0432\u0433','09':'\u0441\u0435\u043d','10':'\u043e\u043a\u0442',
+    '11':'\u043d\u043e\u044f','12':'\u0434\u0435\u043a'
+  };
+  const fmtKey = k => { const p=k.split('-'); return (MONTHS_RU[p[0]]||p[0])+' '+p[1]; };
+
+  let ctx = `\u041f\u0435\u0440\u0438\u043e\u0434 \u0434\u0430\u043d\u043d\u044b\u0445: ${fmtKey(firstKey)} \u2014 ${fmtKey(lastKey)} (${months.length} \u043c\u0435\u0441.\u0435\u0432)\n\n`;
+  ctx += '\u041f\u043e\u043c\u0435\u0441\u044f\u0447\u043d\u0430\u044f \u0434\u0438\u043d\u0430\u043c\u0438\u043a\u0430 (\u043c\u0435\u0441\u044f\u0446 | \u0432\u044b\u0440\u0443\u0447\u043a\u0430 \u20bd | \u043f\u0440\u0438\u0431\u044b\u043b\u044c \u20bd | \u0440\u0435\u043d\u0442-\u0442\u044c %):\n';
+  months.forEach(m => {
+    ctx += `${fmtKey(m.key)} | ${Math.round(m.revenue).toLocaleString('ru-RU')} | ${Math.round(m.fin_res_biz).toLocaleString('ru-RU')} | ${(m.margin_pct||0).toFixed(1)}%\n`;
+  });
+
+  const lastM = lastKey ? D.projects_per_month[lastKey]||[] : [];
+  const topProj = lastM.slice().sort((a,b)=>b.rev-a.rev).slice(0,20);
+  if (topProj.length) {
+    ctx += `\n\u0422\u043e\u043f-20 \u043f\u0440\u043e\u0435\u043a\u0442\u043e\u0432 \u0437\u0430 ${fmtKey(lastKey)} (\u043f\u0440\u043e\u0435\u043a\u0442 | \u0432\u044b\u0440\u0443\u0447\u043a\u0430 | \u0440\u0435\u043d\u0442-\u0442\u044c):\n`;
+    topProj.forEach(p => { ctx += `${p.name} | ${Math.round(p.rev).toLocaleString('ru-RU')} | ${(p.margin||0).toFixed(1)}%\n`; });
+  }
+
+  const allKeys = MONTH_KEYS.slice();
+  const clientAcc = {};
+  allKeys.forEach(k=>(D.projects_per_month[k]||[]).forEach(p=>{
+    const n = p.name.split(/[\s_]+/)[0];
+    if (!n) return;
+    if (!clientAcc[n]) clientAcc[n]={rev:0,fin:0};
+    clientAcc[n].rev += p.rev;
+    clientAcc[n].fin += p.rev*(p.margin/100);
+  }));
+  const topCl = Object.entries(clientAcc)
+    .filter(([,v])=>v.rev>0)
+    .sort((a,b)=>b[1].rev-a[1].rev).slice(0,15);
+  if (topCl.length) {
+    ctx += `\n\u0422\u043e\u043f-15 \u043a\u043b\u0438\u0435\u043d\u0442\u043e\u0432 \u0437\u0430 \u0432\u0441\u0451 \u0432\u0440\u0435\u043c\u044f (\u043a\u043b\u0438\u0435\u043d\u0442 | \u0432\u044b\u0440\u0443\u0447\u043a\u0430 | \u0440\u0435\u043d\u0442-\u0442\u044c):\n`;
+    topCl.forEach(([name,v]) => { const m=v.rev>0?v.fin/v.rev*100:0; ctx+=`${name} | ${Math.round(v.rev).toLocaleString('ru-RU')} | ${m.toFixed(1)}%\n`; });
+  }
+
+  return ctx;
+}
+
+const _aiSystemPrompt = `\u0422\u044b \u0444\u0438\u043d\u0430\u043d\u0441\u043e\u0432\u044b\u0439 \u0430\u043d\u0430\u043b\u0438\u0442\u0438\u043a \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0438 STH-group. \u041e\u0442\u0432\u0435\u0447\u0430\u0439 \u0438\u0441\u043a\u043b\u044e\u0447\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u043d\u0430 \u043e\u0441\u043d\u043e\u0432\u0435 \u0434\u0430\u043d\u043d\u044b\u0445 \u0438\u0437 \u043f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u043d\u043e\u0433\u043e \u043e\u0442\u0447\u0451\u0442\u0430 \u043e \u0440\u0435\u043d\u0442\u0430\u0431\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u0438. \u041d\u0435 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439 \u043d\u0438\u043a\u0430\u043a\u0443\u044e \u0432\u043d\u0435\u0448\u043d\u044e\u044e \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044e \u043e \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0438. \u0415\u0441\u043b\u0438 \u0434\u0430\u043d\u043d\u044b\u0445 \u043d\u0435\u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u2014 \u0447\u0435\u0441\u0442\u043d\u043e \u0441\u043a\u0430\u0436\u0438 \u043e\u0431 \u044d\u0442\u043e\u043c. \u041e\u0442\u0432\u0435\u0447\u0430\u0439 \u043d\u0430 \u0440\u0443\u0441\u0441\u043a\u043e\u043c \u044f\u0437\u044b\u043a\u0435. \u0411\u0443\u0434\u044c \u043a\u043e\u043d\u043a\u0440\u0435\u0442\u0435\u043d, \u0446\u0438\u0444\u0440\u044b \u0444\u043e\u0440\u043c\u0430\u0442\u0438\u0440\u0443\u0439 \u0447\u0438\u0442\u0430\u0435\u043c\u043e.`;
+
+function _aiAddMsg(role, text) {
+  const wrap = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.style.cssText = `max-width:85%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word;`+
+    (role==='user'
+      ? 'background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:4px'
+      : 'background:var(--hover);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px');
+  div.textContent = text;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+async function sendAIMessage() {
+  const inp = document.getElementById('ai-input');
+  const question = inp.value.trim();
+  if (!question) return;
+  if (GEMINI_KEY === '___GEMINI_KEY___') {
+    _aiAddMsg('assistant', '\u26a0\ufe0f API-\u043a\u043b\u044e\u0447 \u043d\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0435\u043d. \u041e\u0431\u0440\u0430\u0442\u0438\u0442\u0435\u0441\u044c \u043a \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u0443.'); return;
+  }
+  inp.value = '';
+  _aiAddMsg('user', question);
+  document.getElementById('ai-typing').style.display = 'block';
+  document.getElementById('ai-send-btn').disabled = true;
+
+  const dataCtx = _buildDataContext();
+  const contents = [
+    {role:'user', parts:[{text: '\u0414\u0430\u043d\u043d\u044b\u0435 \u043e\u0442\u0447\u0451\u0442\u0430:\n'+dataCtx}]},
+    {role:'model', parts:[{text: '\u041f\u043e\u043d\u044f\u043b, \u0434\u0430\u043d\u043d\u044b\u0435 \u043f\u0440\u043e\u0447\u0438\u0442\u0430\u043d\u044b. \u0413\u043e\u0442\u043e\u0432 \u043e\u0442\u0432\u0435\u0447\u0430\u0442\u044c \u043d\u0430 \u0432\u043e\u043f\u0440\u043e\u0441\u044b.'}]},
+    ..._aiHistory,
+    {role:'user', parts:[{text: question}]}
+  ];
+
+  try {
+    const resp = await fetch(GEMINI_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system_instruction:{parts:[{text:_aiSystemPrompt}]},
+        contents,
+        generationConfig:{temperature:0.3, maxOutputTokens:1024}
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error?.message || resp.statusText);
+    const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || '\u041d\u0435\u0442 \u043e\u0442\u0432\u0435\u0442\u0430';
+    _aiHistory.push({role:'user', parts:[{text:question}]});
+    _aiHistory.push({role:'model', parts:[{text:answer}]});
+    if (_aiHistory.length > 20) _aiHistory = _aiHistory.slice(-20);
+    _aiAddMsg('assistant', answer);
+  } catch(e) {
+    _aiAddMsg('assistant', '\u274c \u041e\u0448\u0438\u0431\u043a\u0430: '+e.message);
+  } finally {
+    document.getElementById('ai-typing').style.display = 'none';
+    document.getElementById('ai-send-btn').disabled = false;
+    document.getElementById('ai-messages').scrollTop = 9999;
+  }
+}
+
+function openAIChat() {
+  document.getElementById('ai-overlay').style.display = 'block';
+  setTimeout(()=>document.getElementById('ai-input').focus(), 100);
+  if (document.getElementById('ai-messages').children.length === 0) {
+    _aiAddMsg('assistant', '\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435! \u042f \u0430\u043d\u0430\u043b\u0438\u0437\u0438\u0440\u0443\u044e \u0444\u0438\u043d\u0430\u043d\u0441\u043e\u0432\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435 STH-group \u0437\u0430 ' + D.monthly.length + ' \u043c\u0435\u0441.\u0435\u0432. \u0417\u0430\u0434\u0430\u0439\u0442\u0435 \u0432\u043e\u043f\u0440\u043e\u0441!');
+  }
+}
+
+function closeAIChat() {
+  document.getElementById('ai-overlay').style.display = 'none';
+}
+
+function clearAIChat() {
+  _aiHistory = [];
+  document.getElementById('ai-messages').innerHTML = '';
+  _aiAddMsg('assistant', '\u0427\u0430\u0442 \u043e\u0447\u0438\u0449\u0435\u043d. \u041c\u043e\u0436\u0435\u0442\u0435 \u0437\u0430\u0434\u0430\u0442\u044c \u043d\u043e\u0432\u044b\u0439 \u0432\u043e\u043f\u0440\u043e\u0441.');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape' && document.getElementById('ai-overlay').style.display==='block') closeAIChat();
+});
+
+document.getElementById('ai-input') && document.getElementById('ai-input').addEventListener('keydown', e => {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
+});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Init
