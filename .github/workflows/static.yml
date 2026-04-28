@@ -18,15 +18,34 @@ jobs:
 
       - name: Inject API key
         run: |
-          # Заменяем плейсхолдер на реальный ключ из Secrets
-          sed -i "s|GEMINI_KEY_PLACEHOLDER|${{ secrets.GEMINI_API_KEY }}|g" index.html
+          echo "📁 Содержимое index.html до замены (первые 5 строк):"
+          head -5 index.html
           
-          # Проверяем что замена произошла
+          echo ""
+          echo "🔍 Ищу плейсхолдер GEMINI_KEY_PLACEHOLDER..."
           if grep -q "GEMINI_KEY_PLACEHOLDER" index.html; then
-            echo "❌ ОШИБКА: Плейсхолдер не заменился!"
+            echo "✅ Плейсхолдер найден, заменяю..."
+            sed -i "s|GEMINI_KEY_PLACEHOLDER|${{ secrets.GEMINI_API_KEY }}|g" index.html
+            echo "✅ Замена выполнена"
+          else
+            echo "❌ Плейсхолдер GEMINI_KEY_PLACEHOLDER НЕ НАЙДЕН!"
+            echo "Ищу альтернативные варианты:"
+            grep -n "GEMINI" index.html || echo "Слово GEMINI не найдено"
+            grep -n "AIza" index.html || echo "Ключей AIza не найдено"
+            exit 1
+          fi
+          
+          echo ""
+          echo "📁 Содержимое index.html после замены (первые 5 строк):"
+          head -5 index.html
+          
+          echo ""
+          echo "🔍 Проверяю, что плейсхолдер действительно заменён:"
+          if grep -q "GEMINI_KEY_PLACEHOLDER" index.html; then
+            echo "❌ ОШИБКА: Плейсхолдер всё ещё в файле!"
             exit 1
           else
-            echo "✅ Ключ успешно вставлен"
+            echo "✅ Плейсхолдер успешно заменён"
           fi
 
       - name: Upload Pages artifact
