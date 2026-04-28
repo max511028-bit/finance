@@ -546,8 +546,10 @@ select[multiple] option{padding:5px 8px}
       <span class="lbl">&#1055;&#1077;&#1088;&#1080;&#1086;&#1076;:</span>
       <select id="projPeriodType"><option value="month">&#1052;&#1077;&#1089;&#1103;&#1094;</option><option value="quarter">&#1050;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083;</option><option value="year" selected>&#1043;&#1086;&#1076;</option><option value="all">&#1042;&#1089;&#1105; &#1074;&#1088;&#1077;&#1084;&#1103;</option></select>
       <select id="projPeriodVal"></select>
+      <span class="lbl" style="margin-left:8px">&#1056;&#1056;&#1055;:</span>
+      <select id="projRrpFilter"><option value="all">&#1042;&#1089;&#1077; &#1056;&#1056;&#1055;</option></select>
       <input id="projSearchInput" type="text" placeholder="&#1055;&#1086;&#1080;&#1089;&#1082; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;..."
-        style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;min-width:240px;outline:none">
+        style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;min-width:200px;outline:none">
       <span id="proj-stats" style="font-size:12px;color:var(--muted)"></span>
       <button class="export-btn" onclick="exportCurrentProjects()">&#128229; CSV</button>
     </div>
@@ -669,6 +671,13 @@ select[multiple] option{padding:5px 8px}
     <div id="ai-messages" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px"></div>
     <div id="ai-typing" style="display:none;padding:0 20px 8px;color:var(--muted);font-size:13px">
       <span style="animation:pulse 1.2s ease-in-out infinite">&#8226;&#8226;&#8226; &#1044;&#1091;&#1084;&#1072;&#1102;...</span>
+    </div>
+    <div id="ai-hints" style="padding:8px 16px 0;display:flex;flex-wrap:wrap;gap:6px">
+      <button class="btn-sm" style="font-size:11px" onclick="_aiHint(this.textContent)">&#1058;&#1086;&#1087;-5 \u043f\u1088\u043e\u0435\u043a\u0442\u043e\u0432 \u0437\u0430 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0438\u0439 \u043c\u0435\u0441\u044f\u0446</button>
+      <button class="btn-sm" style="font-size:11px" onclick="_aiHint(this.textContent)">\u0421\u1088\u0430\u0432\u043d\u0438 2024 \u0438 2025 \u043f\u043e \u0432\u044b\u1088\u0443\u0447\u043a\u0435 \u0438 \u1088\u0435\u043d\u0442-\u0442\u0438</button>
+      <button class="btn-sm" style="font-size:11px" onclick="_aiHint(this.textContent)">\u0425\u0443\u0434\u0448\u0438\u0435 \u043a\u043b\u0438\u0435\u043d\u0442\u044b \u043f\u043e \u1088\u0435\u043d\u0442\u0430\u0431\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u0438</button>
+      <button class="btn-sm" style="font-size:11px" onclick="_aiHint(this.textContent)">\u041a\u0430\u043a\u043e\u0439 \u043c\u0435\u0441\u044f\u0446 \u0431\u044b\u043b \u043b\u0443\u0447\u0448\u0438\u043c \u043f\u043e \u043f\u1088\u0438\u0431\u044b\u043b\u0438?</button>
+      <button class="btn-sm" style="font-size:11px" onclick="_aiHint(this.textContent)">\u0422\u1088\u0435\u043d\u0434 \u1088\u0435\u043d\u0442\u0430\u0431\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u0438 \u0437\u0430 2025</button>
     </div>
     <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
       <textarea id="ai-input" rows="2"
@@ -1853,6 +1862,12 @@ initFns.projects = function(){
   const selType = document.getElementById('projPeriodType');
   const selVal  = document.getElementById('projPeriodVal');
   const srch    = document.getElementById('projSearchInput');
+  const rrpSel  = document.getElementById('projRrpFilter');
+
+  // Populate РРП options once
+  const allRrps = [...new Set(Object.values(D.projects_per_month).flat().map(p=>p.rrp).filter(Boolean))].sort();
+  allRrps.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; rrpSel.appendChild(o); });
+  rrpSel.onchange = renderProjects;
 
   function sortProjs(col){ if(_psc===col){_psa=!_psa;}else{_psc=col;_psa=false;} renderProjects(); }
   window._sortProjs = sortProjs;
@@ -1862,13 +1877,16 @@ initFns.projects = function(){
     const keys=getMonthKeys(type,val);
     const pv=prevPeriod(type,val);
     const prevKeys=pv?getMonthKeys(type,pv):[];
+    const rrpFl = rrpSel.value;
 
     const acc={}, prevAcc={};
     keys.forEach(k=>(D.projects_per_month[k]||[]).forEach(p=>{
+      if(rrpFl!=='all' && p.rrp!==rrpFl) return;
       if(!acc[p.name]) acc[p.name]={rev:0,finSum:0};
       acc[p.name].rev+=p.rev; acc[p.name].finSum+=p.rev*(p.margin/100);
     }));
     prevKeys.forEach(k=>(D.projects_per_month[k]||[]).forEach(p=>{
+      if(rrpFl!=='all' && p.rrp!==rrpFl) return;
       if(!prevAcc[p.name]) prevAcc[p.name]={rev:0,finSum:0};
       prevAcc[p.name].rev+=p.rev; prevAcc[p.name].finSum+=p.rev*(p.margin/100);
     }));
@@ -2077,7 +2095,8 @@ initFns.divisions = function(){
       const dRevStr=drev!==null?`<span class="${drev>=0?'pos':'neg'}">${sign(drev)}&#8381;${fmtM(drev)}</span>`:'—';
       const dMarStr=dmar!==null?`<span class="${dmar>=0?'pos':'neg'}">${sign(dmar)}${fmtPct(dmar)}</span>`:'—';
       const esc=d.div.replace(/'/g,"\\'");
-      html+=`<tr>
+      const rowBg=d.margin<THRESHOLDS.warn?'background:rgba(239,83,80,.07)':d.margin<THRESHOLDS.good?'background:rgba(255,167,38,.06)':'';
+      html+=`<tr style="${rowBg}">
         <td style="font-weight:600">${d.div}</td>
         <td class="td-r">&#8381;${fmtM(d.revSum)}</td>
         <td class="td-r" style="color:var(--muted);font-size:11px">${share}</td>
@@ -2361,7 +2380,9 @@ function openProjectCard(name){
   function rebuildProjModal(){
     const sorted=[...projEntries].sort((a,b)=>{
       const av=a[_pmsc]??0,bv=b[_pmsc]??0;
-      const cmp=typeof av==='string'?av.localeCompare(bv,'ru'):(av-bv);
+      const cmp=_pmsc==='key'
+        ? MONTH_KEYS.indexOf(a.key)-MONTH_KEYS.indexOf(b.key)
+        : typeof av==='string'?av.localeCompare(bv,'ru'):(av-bv);
       return _pmsa?cmp:-cmp;
     });
     const sa=c=>c===_pmsc?(_pmsa?' ↑':' ↓'):'';
@@ -2510,31 +2531,63 @@ function openDivisionCard(divName){
   },50);
 }
 
-function openClientCard(clientName){
+function openClientCard(clientName, _type, _val){
+  destroyChart('modalChart'); destroyChart('modalChart2');
+  const type = _type||'all', val = _val||'all';
+  const esc  = clientName.replace(/'/g,"\\'");
+
   const clientRefs = D.clients.map(c=>c.name);
   const _clientFn  = clientRefs.length ? buildClientExtractor(clientRefs) : null;
   const getClient  = n => (_clientFn&&_clientFn(n)) || n.split(/[\s_]+/)[0];
 
-  // Gather monthly data for this client
-  const monthData = D.monthly.map(m=>{
+  // All months for this client
+  const allData = D.monthly.map(m=>{
     const projs=(D.projects_per_month[m.key]||[]).filter(p=>getClient(p.name)===clientName);
     const rev=projs.reduce((s,p)=>s+p.rev,0);
     const fin=projs.reduce((s,p)=>s+p.rev*(p.margin/100),0);
     return {label:m.label,key:m.key,rev,fin,margin:rev>0?fin/rev*100:0,projs};
   }).filter(m=>m.rev>0);
 
-  if(!monthData.length){
-    document.getElementById('modal-content').innerHTML=`<h2 style="margin-bottom:12px">${clientName}</h2><p style="color:var(--muted)">Нет данных</p>`;
+  if(!allData.length){
+    document.getElementById('modal-content').innerHTML=`<h2 style="margin-bottom:12px">${clientName}</h2><p style="color:var(--muted)">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</p>`;
     document.getElementById('modal-overlay').style.display='block'; return;
   }
 
-  const totalRev=monthData.reduce((s,m)=>s+m.rev,0);
-  const totalFin=monthData.reduce((s,m)=>s+m.fin,0);
-  const avgMar=totalRev>0?totalFin/totalRev*100:0;
-  const compAvg=D.monthly.reduce((s,m)=>s+m.margin_pct,0)/D.monthly.length;
-  const best=monthData.reduce((a,b)=>a.margin>b.margin?a:b);
+  // Filter by selected period
+  const selKeys = getMonthKeys(type, val);
+  const monthData = type==='all' ? allData : allData.filter(m=>selKeys.includes(m.key));
 
-  // Aggregate projects
+  const compAvg = D.monthly.reduce((s,m)=>s+m.margin_pct,0)/D.monthly.length;
+
+  // Build val options for period type select
+  const MN_RU=['','\u042f\u043d\u0432','\u0424\u0435\u0432','\u041c\u0430\u0440','\u0410\u043f\u0440','\u041c\u0430\u0439','\u0418\u044e\u043d','\u0418\u044e\u043b','\u0410\u0432\u0433','\u0421\u0435\u043d','\u041e\u043a\u0442','\u041d\u043e\u044f','\u0414\u0435\u043a'];
+  function buildValOpts(t, cur) {
+    if(t==='all') return '';
+    const seen=new Set(); let s='';
+    [...MONTH_KEYS].reverse().forEach(k=>{
+      const mm=+k.slice(0,2),yy=k.slice(3);
+      let v,lbl;
+      if(t==='month'){v=k;lbl=MN_RU[mm]+' '+yy;}
+      else if(t==='quarter'){v=`Q${Math.ceil(mm/3)}-${yy}`;lbl=v;}
+      else{v=yy;lbl=yy;}
+      if(!seen.has(v)){seen.add(v);s+=`<option value="${v}"${v===cur?' selected':''}>${lbl}</option>`;}
+    });
+    return s;
+  }
+
+  const valOptHtml = buildValOpts(type, val);
+  const periodHTML = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <span style="font-size:12px;color:var(--muted)">\u041f\u0435\u0440\u0438\u043e\u0434:</span>
+    <select style="font-size:12px" onchange="openClientCard('${esc}',this.value,'all')">
+      <option value="month"${type==='month'?' selected':''}>\u041c\u0435\u0441\u044f\u0446</option>
+      <option value="quarter"${type==='quarter'?' selected':''}>\u041a\u0432\u0430\u0440\u0442\u0430\u043b</option>
+      <option value="year"${type==='year'?' selected':''}>\u0413\u043e\u0434</option>
+      <option value="all"${type==='all'?' selected':''}>\u0412\u0441\u0451 \u0432\u0440\u0435\u043c\u044f</option>
+    </select>
+    ${type!=='all'?`<select style="font-size:12px" onchange="openClientCard('${esc}','${type}',this.value)">${valOptHtml}</select>`:''}
+  </div>`;
+
+  // Aggregate projects over selected period
   const projAcc={};
   monthData.forEach(m=>m.projs.forEach(p=>{
     if(!projAcc[p.name])projAcc[p.name]={rev:0,fin:0};
@@ -2550,18 +2603,18 @@ function openClientCard(clientName){
       const cmp=typeof av==='string'?av.localeCompare(bv,'ru'):(av-bv);
       return _cpsa?cmp:-cmp;
     });
-    const sa=c=>c===_cpsc?(_cpsa?' ↑':' ↓'):'';
+    const sa=c=>c===_cpsc?(_cpsa?' \u2191':' \u2193'):'';
     let tbl=`<div class="tbl-wrap"><table style="font-size:12px"><thead><tr>
-      <th style="cursor:pointer" onclick="window._sortCP('n')">&#1055;&#1088;&#1086;&#1077;&#1082;&#1090;${sa('n')}</th>
-      <th class="td-r" style="cursor:pointer" onclick="window._sortCP('rev')">&#1042;&#1099;&#1088;&#1091;&#1095;&#1082;&#1072;${sa('rev')}</th>
-      <th class="td-r" style="cursor:pointer" onclick="window._sortCP('fin')">&#1055;&#1088;&#1080;&#1073;&#1099;&#1083;&#1100;${sa('fin')}</th>
-      <th class="td-r" style="cursor:pointer" onclick="window._sortCP('margin')">&#1056;&#1077;&#1085;&#1090;-&#1090;&#1100;${sa('margin')}</th>
+      <th style="cursor:pointer" onclick="window._sortCP('n')">\u041f\u0440\u043e\u0435\u043a\u0442${sa('n')}</th>
+      <th class="td-r" style="cursor:pointer" onclick="window._sortCP('rev')">\u0412\u044b\u0440\u0443\u0447\u043a\u0430${sa('rev')}</th>
+      <th class="td-r" style="cursor:pointer" onclick="window._sortCP('fin')">\u041f\u0440\u0438\u0431\u044b\u043b\u044c${sa('fin')}</th>
+      <th class="td-r" style="cursor:pointer" onclick="window._sortCP('margin')">\u0420\u0435\u043d\u0442-\u0442\u044c${sa('margin')}</th>
     </tr></thead><tbody>`;
     sorted.forEach(p=>{
       const chip=chipCls(p.margin);
-      const esc=p.n.replace(/'/g,"\\'");
+      const e2=p.n.replace(/'/g,"\\'");
       tbl+=`<tr><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.n}">
-        <a class="proj-link" onclick="openProjectCard('${esc}')">${p.n}</a></td>
+        <a class="proj-link" onclick="openProjectCard('${e2}')">${p.n}</a></td>
         <td class="td-r">&#8381;${fmtM(p.rev)}</td>
         <td class="td-r">&#8381;${fmtM(p.fin)}</td>
         <td class="td-r"><span class="chip ${chip}">${fmtPct(p.margin)}</span></td></tr>`;
@@ -2577,15 +2630,17 @@ function openClientCard(clientName){
   function rebuildMonthTable(){
     const sorted=[...mEntries].sort((a,b)=>{
       const av=a[_cmsc]??0, bv=b[_cmsc]??0;
-      const cmp=typeof av==='string'?av.localeCompare(bv,'ru'):(av-bv);
+      const cmp=_cmsc==='label'
+        ? MONTH_KEYS.indexOf(a.key)-MONTH_KEYS.indexOf(b.key)
+        : typeof av==='string'?av.localeCompare(bv,'ru'):(av-bv);
       return _cmsa?cmp:-cmp;
     });
-    const sa=c=>c===_cmsc?(_cmsa?' ↑':' ↓'):'';
+    const sa=c=>c===_cmsc?(_cmsa?' \u2191':' \u2193'):'';
     let tbl=`<div class="tbl-wrap"><table style="font-size:12px"><thead><tr>
-      <th style="cursor:pointer" onclick="window._sortCM('label')">&#1052;&#1077;&#1089;&#1103;&#1094;${sa('label')}</th>
-      <th class="td-r" style="cursor:pointer" onclick="window._sortCM('rev')">&#1042;&#1099;&#1088;&#1091;&#1095;&#1082;&#1072;${sa('rev')}</th>
-      <th class="td-r" style="cursor:pointer" onclick="window._sortCM('fin')">&#1055;&#1088;&#1080;&#1073;&#1099;&#1083;&#1100;${sa('fin')}</th>
-      <th class="td-r" style="cursor:pointer" onclick="window._sortCM('margin')">&#1056;&#1077;&#1085;&#1090;-&#1090;&#1100;${sa('margin')}</th>
+      <th style="cursor:pointer" onclick="window._sortCM('label')">\u041c\u0435\u0441\u044f\u0446${sa('label')}</th>
+      <th class="td-r" style="cursor:pointer" onclick="window._sortCM('rev')">\u0412\u044b\u0440\u0443\u0447\u043a\u0430${sa('rev')}</th>
+      <th class="td-r" style="cursor:pointer" onclick="window._sortCM('fin')">\u041f\u0440\u0438\u0431\u044b\u043b\u044c${sa('fin')}</th>
+      <th class="td-r" style="cursor:pointer" onclick="window._sortCM('margin')">\u0420\u0435\u043d\u0442-\u0442\u044c${sa('margin')}</th>
     </tr></thead><tbody>`;
     sorted.forEach(m=>{
       const chip=chipCls(m.margin);
@@ -2599,27 +2654,27 @@ function openClientCard(clientName){
   }
   window._sortCM=function(col){if(_cmsc===col){_cmsa=!_cmsa;}else{_cmsc=col;_cmsa=false;}rebuildMonthTable();};
 
+  // KPI
+  const totalRev=monthData.reduce((s,m)=>s+m.rev,0);
+  const totalFin=monthData.reduce((s,m)=>s+m.fin,0);
+  const avgMar=totalRev>0?totalFin/totalRev*100:0;
+  const best=monthData.length?monthData.reduce((a,b)=>a.margin>b.margin?a:b):null;
+
   let html=`<h2 style="margin-bottom:4px;font-size:18px">&#127962; ${clientName}</h2>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:0">${monthData.length} активных месяцев · ${projList.length} проектов · первый: ${monthData[0].label} · последний: ${monthData[monthData.length-1].label}</p>`;
-
+    <p style="color:var(--muted);font-size:12px;margin-bottom:8px">${monthData.length} \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0445 \u043c\u0435\u0441. &middot; ${projList.length} \u043f\u0440\u043e\u0435\u043a\u0442\u043e\u0432</p>`;
+  html+=periodHTML;
   html+=modalKpi([
-    {label:'Выручка (итого)',val:'&#8381;'+fmtM(totalRev),sub:'Ср/мес: &#8381;'+fmtM(totalRev/monthData.length),color:'var(--accent)'},
-    {label:'Прибыль (итого)',val:'&#8381;'+fmtM(totalFin),sub:'Рент-ть: '+fmtPct(avgMar),color:'var(--green)'},
-    {label:'Лучший месяц',val:best.label,sub:'Рент-ть: '+fmtPct(best.margin)+' · &#8381;'+fmtM(best.rev),color:'var(--teal)'},
-    {label:'Рент. vs ср. компания',val:(avgMar-compAvg>=0?'+':'')+fmtPct(avgMar-compAvg),
-     sub:'Ср. компания: '+fmtPct(compAvg),color:avgMar>=compAvg?'var(--green)':'var(--red)'},
+    {label:'\u0412\u044b\u0440\u0443\u0447\u043a\u0430 (\u0438\u0442\u043e\u0433\u043e)',val:'&#8381;'+fmtM(totalRev),sub:'\u0421\u0440/\u043c\u0435\u0441: &#8381;'+fmtM(monthData.length?totalRev/monthData.length:0),color:'var(--accent)'},
+    {label:'\u041f\u0440\u0438\u0431\u044b\u043b\u044c (\u0438\u0442\u043e\u0433\u043e)',val:'&#8381;'+fmtM(totalFin),sub:'\u0420\u0435\u043d\u0442-\u0442\u044c: '+fmtPct(avgMar),color:'var(--green)'},
+    best?{label:'\u041b\u0443\u0447\u0448\u0438\u0439 \u043c\u0435\u0441\u044f\u0446',val:best.label,sub:'\u0420\u0435\u043d\u0442-\u0442\u044c: '+fmtPct(best.margin)+' &middot; &#8381;'+fmtM(best.rev),color:'var(--teal)'}
+      :{label:'\u041b\u0443\u0447\u0448\u0438\u0439 \u043c\u0435\u0441\u044f\u0446',val:'\u2014',color:'var(--teal)'},
+    {label:'\u0420\u0435\u043d\u0442. vs \u0441\u0440. \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u044f',val:(avgMar-compAvg>=0?'+':'')+fmtPct(avgMar-compAvg),
+     sub:'\u0421\u0440. \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u044f: '+fmtPct(compAvg),color:avgMar>=compAvg?'var(--green)':'var(--red)'},
   ]);
-
   html+=`<div style="position:relative;height:240px;margin-bottom:18px"><canvas id="modalChart"></canvas></div>`;
   html+=`<div class="row2" style="gap:14px">
-    <div>
-      <div style="font-size:12px;font-weight:600;margin-bottom:8px">&#128203; &#1055;&#1088;&#1086;&#1077;&#1082;&#1090;&#1099;</div>
-      <div id="client-proj-table"></div>
-    </div>
-    <div>
-      <div style="font-size:12px;font-weight:600;margin-bottom:8px">&#128197; &#1055;&#1086; &#1084;&#1077;&#1089;&#1103;&#1094;&#1072;&#1084;</div>
-      <div id="client-month-table"></div>
-    </div>
+    <div><div style="font-size:12px;font-weight:600;margin-bottom:8px">&#128203; \u041f\u0440\u043e\u0435\u043a\u0442\u044b</div><div id="client-proj-table"></div></div>
+    <div><div style="font-size:12px;font-weight:600;margin-bottom:8px">&#128197; \u041f\u043e \u043c\u0435\u0441\u044f\u0446\u0430\u043c</div><div id="client-month-table"></div></div>
   </div>`;
 
   document.getElementById('modal-content').innerHTML=html;
@@ -2628,20 +2683,21 @@ function openClientCard(clientName){
   rebuildMonthTable();
 
   setTimeout(()=>{
+    if(!document.getElementById('modalChart')) return;
     charts.modalChart=new Chart(document.getElementById('modalChart').getContext('2d'),{
       data:{labels:monthData.map(m=>m.label),datasets:[
-        {type:'bar',label:'Выручка, тыс.₽',data:monthData.map(m=>Math.round(m.rev/1e3)),
+        {type:'bar',label:'\u0412\u044b\u0440\u0443\u0447\u043a\u0430, \u0442\u044b\u0441.\u20bd',data:monthData.map(m=>Math.round(m.rev/1e3)),
          backgroundColor:'rgba(92,107,192,.6)',yAxisID:'y',order:2},
-        {type:'line',label:'Рент-ть %',data:monthData.map(m=>+m.margin.toFixed(1)),
+        {type:'line',label:'\u0420\u0435\u043d\u0442-\u0442\u044c %',data:monthData.map(m=>+m.margin.toFixed(1)),
          borderColor:'#66bb6a',backgroundColor:'rgba(102,187,106,.1)',fill:true,
          tension:.3,yAxisID:'y2',order:1,pointRadius:4,borderWidth:2},
-        {type:'line',label:'Ср. компания %',data:monthData.map(()=>+compAvg.toFixed(1)),
+        {type:'line',label:'\u0421\u0440. \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u044f %',data:monthData.map(()=>+compAvg.toFixed(1)),
          borderColor:'rgba(255,167,38,.6)',borderDash:[6,4],
          fill:false,yAxisID:'y2',order:1,pointRadius:0,borderWidth:1.5},
       ]},
       options:{...chartDefaults(),scales:{
         x:scaleX(),
-        y:{...scaleY('тыс. ₽'),position:'left'},
+        y:{...scaleY('\u0442\u044b\u0441. \u20bd'),position:'left'},
         y2:{...scaleY('%'),position:'right',grid:{drawOnChartArea:false}},
       }}
     });
@@ -2830,6 +2886,13 @@ async function sendAIMessage() {
     document.getElementById('ai-send-btn').disabled = false;
     document.getElementById('ai-messages').scrollTop = 9999;
   }
+}
+
+function _aiHint(text) {
+  const inp = document.getElementById('ai-input');
+  inp.value = text;
+  inp.focus();
+  sendAIMessage();
 }
 
 function openAIChat() {
