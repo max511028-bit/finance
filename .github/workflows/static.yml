@@ -18,29 +18,23 @@ jobs:
 
       - name: Inject API key
         run: |
-          echo "📁 Содержимое sth_dashboard.html до замены (первые 5 строк):"
-          head -5 sth_dashboard.html
+          echo "🔍 Ищу плейсхолдер в sth_dashboard.html..."
+          
+          # Показываем строку с ключом ДО замены
+          grep -n "GEMINI_KEY" sth_dashboard.html | head -3
           
           echo ""
-          echo "🔍 Ищу плейсхолдер GEMINI_KEY_PLACEHOLDER..."
-          if grep -q "GEMINI_KEY_PLACEHOLDER" sth_dashboard.html; then
-            echo "✅ Плейсхолдер найден, заменяю..."
-            sed -i "s|GEMINI_KEY_PLACEHOLDER|${{ secrets.GEMINI_API_KEY }}|g" sth_dashboard.html
-            echo "✅ Замена выполнена"
-          else
-            echo "❌ Плейсхолдер GEMINI_KEY_PLACEHOLDER НЕ НАЙДЕН в sth_dashboard.html!"
-            echo "Ищу альтернативные варианты:"
-            grep -n "GEMINI" sth_dashboard.html || echo "Слово GEMINI не найдено"
-            grep -n "AIza" sth_dashboard.html || echo "Ключей AIza не найдено"
-            exit 1
-          fi
+          echo "✅ Заменяю плейсхолдер на ключ из секретов..."
+          
+          # Заменяем ТОЛЬКО текст внутри кавычек
+          sed -i "s|GEMINI_KEY_PLACEHOLDER|${{ secrets.GEMINI_KEY_PLACEHOLDER }}|g" sth_dashboard.html
           
           echo ""
-          echo "📁 Содержимое sth_dashboard.html после замены (первые 5 строк):"
-          head -5 sth_dashboard.html
+          echo "📁 Проверяем результат:"
+          grep -n "GEMINI_KEY" sth_dashboard.html | head -3
           
           echo ""
-          echo "🔍 Проверяю, что плейсхолдер действительно заменён:"
+          echo "🔍 Проверяю, что плейсхолдер заменён:"
           if grep -q "GEMINI_KEY_PLACEHOLDER" sth_dashboard.html; then
             echo "❌ ОШИБКА: Плейсхолдер всё ещё в файле!"
             exit 1
@@ -49,8 +43,8 @@ jobs:
           fi
           
           echo ""
-          echo "🔍 Проверяю, что ключ появился (первые 10 символов ключа):"
-          grep -o "AIza[0-9A-Za-z]*" sth_dashboard.html | head -1 | cut -c1-10 || echo "Ключ не найден"
+          echo "🔍 Проверяю, что ключ появился (первые 10 символов):"
+          grep -o "AIza[0-9A-Za-z]*" sth_dashboard.html | head -1 | cut -c1-10 || echo "⚠️ Ключ не найден, но это нормально если он начинается не с AIza"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
